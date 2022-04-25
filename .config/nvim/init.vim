@@ -61,26 +61,30 @@ syntax enable
 
 set clipboard+=unnamedplus
 set number
+set splitbelow
+set splitright
 
 filetype plugin indent on
 
 xnoremap p "_dP
+inoremap <C-j> <C-o>o
+inoremap <C-k> <C-o>O
 tnoremap <Esc> <C-\><C-n>
 
 " emacs keybinds
-imap <C-p> <Up>
-imap <C-n> <Down>
-imap <C-b> <Left>
-imap <C-f> <Right>
-imap <C-a> <Home>
-imap <C-e> <End>
+inoremap <C-p> <Up>
+inoremap <C-n> <Down>
+inoremap <C-b> <Left>
+inoremap <C-f> <Right>
+inoremap <C-a> <Home>
+inoremap <C-e> <End>
 
-cmap <C-P> <Up>
-cmap <C-N> <Down>
-cmap <C-B> <Left>
-cmap <C-F> <Right>
-cmap <C-A> <Home>
-cmap <C-E> <End>
+cnoremap <C-P> <Up>
+cnoremap <C-N> <Down>
+cnoremap <C-B> <Left>
+cnoremap <C-F> <Right>
+cnoremap <C-A> <Home>
+cnoremap <C-E> <End>
 
 " coc.nvim start
 " Set internal encoding of vim, not needed on neovim, since coc.nvim using some
