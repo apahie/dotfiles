@@ -63,6 +63,8 @@ set clipboard+=unnamedplus
 set number
 set splitbelow
 set splitright
+set scrolloff=5
+set wildmode=longest,list
 
 filetype plugin indent on
 
