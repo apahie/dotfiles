@@ -28,3 +28,5 @@ vim.api.nvim_set_keymap('c', '<C-a>', '<Home>', { noremap = true })
 vim.api.nvim_set_keymap('c', '<C-e>', '<End>', { noremap = true })
 
 vim.api.nvim_set_keymap('t', '<Esc>', '<C-\\><C-n>', { noremap = true })
+
+require('plugins')
