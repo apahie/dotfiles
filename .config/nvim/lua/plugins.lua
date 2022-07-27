@@ -6,6 +6,16 @@ require('packer').startup(function(use)
   use 'tpope/vim-surround'
   use 'tpope/vim-repeat'
 
+  -- telescope
+  use {
+    'nvim-telescope/telescope.nvim', tag = '0.1.0',
+    requires = { {'nvim-lua/plenary.nvim'} }
+  }
+
+  -- quick-scope
+  use 'unblevable/quick-scope'
+
+  -- lsp
   use 'neovim/nvim-lspconfig'
   use 'williamboman/mason.nvim'
   use 'williamboman/mason-lspconfig.nvim'
@@ -20,6 +30,13 @@ require('packer').startup(function(use)
   use 'saadparwaiz1/cmp_luasnip'
 end)
 
+-- telescope
+vim.api.nvim_set_keymap('n', '<leader>ff', '<cmd>Telescope find_files<cr>', { noremap = true })
+vim.api.nvim_set_keymap('n', '<leader>fg', '<cmd>Telescope live_grep<cr>', { noremap = true })
+vim.api.nvim_set_keymap('n', '<leader>fb', '<cmd>Telescope buffers<cr>', { noremap = true })
+vim.api.nvim_set_keymap('n', '<leader>fh', '<cmd>Telescope help_tags<cr>', { noremap = true })
+
+-- lsp
 require("mason").setup {
     ui = {
         icons = {
