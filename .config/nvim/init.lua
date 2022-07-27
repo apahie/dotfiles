@@ -8,6 +8,13 @@ vim.opt.splitright = true
 vim.opt.scrolloff = 5
 vim.opt.wildmode = 'list:longest'
 
+vim.api.nvim_create_autocmd('TermOpen', {
+  callback = function()
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
+  end
+})
+
 vim.api.nvim_set_keymap('x', 'p', '"_dp', { noremap = true, silent = true })
 
 vim.api.nvim_set_keymap('i', '<C-j>', '<C-o>o', { noremap = true })
