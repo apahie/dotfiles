@@ -91,7 +91,10 @@ local capabilities = require('cmp_nvim_lsp').update_capabilities(vim.lsp.protoco
 -- require('lspconfig')['<YOUR_LSP_SERVER>'].setup {
 --   capabilities = capabilities
 -- }
-local servers = { 'sumneko_lua', 'rust_analyzer' }
-for _, server in pairs(servers) do
-  require('lspconfig')[server].setup { capabilities = capabilities }
-end
+
+require('lspconfig')['sumneko_lua'].setup {
+  capabilities = capabilities,
+  settings = { Lua = { diagnostics = { globals = { 'vim' } } } }
+}
+
+require('lspconfig')['rust_analyzer'].setup { capabilities = capabilities }
