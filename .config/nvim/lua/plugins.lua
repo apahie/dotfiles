@@ -5,6 +5,10 @@ require('packer').startup(function(use)
   use 'tpope/vim-commentary'
   use 'tpope/vim-surround'
   use 'tpope/vim-repeat'
+  use {
+    "windwp/nvim-autopairs",
+    config = function() require("nvim-autopairs").setup {} end
+  }
 
   -- telescope
   use {
@@ -31,6 +35,8 @@ require('packer').startup(function(use)
     'nvim-treesitter/nvim-treesitter',
     run = function() require('nvim-treesitter.install').update({ with_sync = true }) end,
   }
+  use 'andymass/vim-matchup'
+  use 'windwp/nvim-ts-autotag'
 end)
 
 -- telescope
@@ -152,5 +158,11 @@ require'nvim-treesitter.configs'.setup {
   indent = {
     enable = true
   },
+  matchup = {
+    enable = true
+  },
+  autotag = {
+    enable = true,
+  }
 }
 
