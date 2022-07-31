@@ -32,6 +32,8 @@ require('packer').startup(function(use)
 
   use { "jose-elias-alvarez/null-ls.nvim", requires = { "nvim-lua/plenary.nvim" } }
 
+  use 'onsails/lspkind.nvim'
+
   -- treesitter
   use {
     'nvim-treesitter/nvim-treesitter',
@@ -378,6 +380,44 @@ require("null-ls").setup({
         require("null-ls").builtins.completion.spell,
     },
 })
+
+local lspkind = require('lspkind')
+cmp.setup {
+  formatting = {
+    format = lspkind.cmp_format({
+      mode = 'symbol_text', -- show only symbol annotations
+      maxwidth = 50, -- prevent the popup from showing more than provided characters (e.g 50 will not show more than 50 characters)
+
+      -- The function below will be called before any actual modifications from lspkind
+      -- so that you can provide more controls on popup customization. (See [#30](https://github.com/onsails/lspkind-nvim/pull/30))
+      before = function (entry, vim_item)
+	local types = require("cmp.types")
+        -- Get the full snippet (and only keep first line)
+        local word = entry:get_insert_text()
+        if entry.completion_item.insertTextFormat == types.lsp.InsertTextFormat.Snippet then
+          word = vim.lsp.util.parse_snippet(word)
+        end
+        word = require("cmp.utils.str").oneline(word)
+
+        -- concatenates the string
+        -- local max = 50
+        -- if string.len(word) >= max then
+        -- 	local before = string.sub(word, 1, math.floor((max - 3) / 2))
+        -- 	word = before .. "..."
+        -- end
+
+        if
+          entry.completion_item.insertTextFormat == types.lsp.InsertTextFormat.Snippet
+          and string.sub(vim_item.abbr, -1, -1) == "~"
+        then
+          word = word .. "~"
+        end
+        vim_item.abbr = word
+        return vim_item
+      end
+    })
+  }
+}
 
 -- treesitter
 require'nvim-treesitter.configs'.setup {
