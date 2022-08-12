@@ -1,12 +1,10 @@
 local M = {}
 
 M.plugins = {
-  user = require("custom.plugins"),
-  override = require("custom.override")
+  user = require "custom.plugins",
+  override = require "custom.override",
 }
 
-M.mappings = require("custom.mappings")
-
-
+M.mappings = require "custom.mappings"
 
 return M

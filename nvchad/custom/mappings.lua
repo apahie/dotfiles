@@ -41,7 +41,7 @@ M.disabled = {
 
 M.hop = {
   n = {
-    ["<leader>s"] = {"<cmd> HopChar1 <CR>", "type a key and hop to the char"}
+    ["<leader>s"] = { "<cmd> HopChar1 <CR>", "type a key and hop to the char" },
   },
 }
 
