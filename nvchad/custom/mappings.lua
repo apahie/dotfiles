@@ -20,9 +20,6 @@ M.general = {
     ["<C-n>"] = { "<Down>", "move down" },
     ["<C-p>"] = { "<Up>", "move up" },
   },
-  t = {
-    ["<ESC>"] = { "<C-\\><C-n>" },
-  },
 }
 
 M.disabled = {
