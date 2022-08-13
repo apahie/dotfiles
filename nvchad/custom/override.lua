@@ -1,21 +1,20 @@
 return {
   ["williamboman/mason.nvim"] = {
+    -- :Mason
+    -- https://github.com/williamboman/mason.nvim/blob/main/PACKAGES.md
     ensure_installed = {
-      -- lua stuff
+      -- lua
       "lua-language-server",
       "stylua",
 
-      -- web dev
-      "css-lsp",
-      "html-lsp",
-      "typescript-language-server",
-      "deno",
-      "emmet-ls",
-      "json-lsp",
+      -- markdown
+      "markdownlint",
+      "marksman",
 
-      -- shell
-      "shfmt",
-      "shellcheck",
+      -- go
+      -- "go-debug-adapter",
+      "goimports",
+      "gopls",
     },
   },
 
