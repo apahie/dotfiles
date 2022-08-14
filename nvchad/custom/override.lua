@@ -18,6 +18,21 @@ return {
     },
   },
 
+  ["kyazdani42/nvim-tree.lua"] = {
+    git = {
+      enable = true,
+    },
+
+    renderer = {
+      highlight_git = true,
+      icons = {
+        show = {
+          git = true,
+        },
+      },
+    },
+  },
+
   ["goolord/alpha-nvim"] = {
     header = {
       val = {
