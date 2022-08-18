@@ -15,6 +15,10 @@ local sources = {
 
   -- go
   b.formatting.goimports,
+
+  -- protobuf
+  b.formatting.buf,
+  b.diagnostics.buf,
 }
 
 null_ls.setup {

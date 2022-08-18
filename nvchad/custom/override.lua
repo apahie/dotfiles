@@ -15,6 +15,9 @@ return {
       -- "go-debug-adapter",
       "goimports",
       "gopls",
+
+      -- protobuf
+      "buf",
     },
   },
 
