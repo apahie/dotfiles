@@ -33,7 +33,6 @@ M.disabled = {
   },
   n = {
     ["<C-s>"] = "", -- { "<cmd> w <CR>", "save file" },
-    ["<S-b>"] = "", -- { "<cmd> enew <CR>", "new buffer" },
   },
 }
 
