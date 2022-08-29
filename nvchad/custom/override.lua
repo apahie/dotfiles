@@ -36,6 +36,12 @@ return {
     },
   },
 
+  ["NvChad/nvterm"] = {
+    behavior = {
+      auto_insert = false,
+    },
+  },
+
   ["goolord/alpha-nvim"] = {
     header = {
       val = {
