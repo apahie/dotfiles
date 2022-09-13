@@ -10,11 +10,14 @@ local sources = {
   -- Lua
   b.formatting.stylua,
 
-  -- markdown
+  -- Markdown
   b.formatting.markdownlint,
 
-  -- go
+  -- Go
   b.formatting.goimports,
+
+  -- web development
+  b.formatting.prettier,
 
   -- protobuf
   b.formatting.buf,

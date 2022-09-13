@@ -3,18 +3,31 @@ return {
     -- :Mason
     -- https://github.com/williamboman/mason.nvim/blob/main/PACKAGES.md
     ensure_installed = {
-      -- lua
+      -- Lua
       "lua-language-server",
       "stylua",
 
-      -- markdown
+      -- Markdown
       "markdownlint",
       "marksman",
 
-      -- go
+      -- Go
       -- "go-debug-adapter",
       "goimports",
       "gopls",
+
+      -- Rust
+      "rust-analyzer",
+
+      -- web development
+      "css-lsp",
+      "html-lsp",
+      "typescript-language-server",
+      -- "deno",
+      "emmet-ls",
+      "json-lsp",
+      "eslint-lsp",
+      "prettier",
 
       -- protobuf
       "buf",
