@@ -28,6 +28,7 @@ return {
       "json-lsp",
       "eslint-lsp",
       "prettier",
+      "stylelint-lsp",
 
       -- protobuf
       "buf",
