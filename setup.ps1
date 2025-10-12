@@ -1,3 +1,5 @@
+# PowerShell -ExecutionPolicy Bypass -File setup.ps1
+
 # エクスプローラでファイル拡張子を表示する設定
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0
 
@@ -12,5 +14,6 @@ winget install -e --id Git.Git
 winget install -e --id GitHub.cli
 winget install -e --id Amazon.Kindle
 winget install -e --id Obsidian.Obsidian
+winget install -e --id 7zip.7zip
 
 wsl --install
