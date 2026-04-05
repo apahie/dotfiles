@@ -131,6 +131,14 @@ done
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 
+# my-vault
+if [ ! -d "$HOME/workspace/my-vault" ]; then
+  echo "my-vault をクローン中..."
+  git clone https://github.com/apahie/my-vault.git "$HOME/workspace/my-vault"
+else
+  echo "my-vault は既に存在します: $HOME/workspace/my-vault"
+fi
+
 # mise trust & install
 echo ""
 echo "mise trust & install を実行中..."

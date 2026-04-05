@@ -37,6 +37,9 @@ curl -fsSL https://claude.ai/install.sh | bash
     && sudo apt update \
     && sudo apt install gh -y
 
+# workspace ディレクトリ
+mkdir -p $HOME/workspace
+
 # Temporary workspace directory with auto-cleanup (30 days)
 mkdir -p $HOME/workspace/tmp
 echo "e $HOME/workspace/tmp - - - 30d" | sudo tee /etc/tmpfiles.d/workspace-tmp.conf
@@ -48,6 +51,9 @@ echo "=========================================="
 echo ""
 echo "次のステップ:"
 echo "  1. WSL を一度再起動してください"
-echo "  2. 再起動後、以下を実行してから setup.sh を実行してください:"
+echo "  2. 再起動後、GitHub CLI で認証してください:"
 echo "       gh auth login -s user"
+echo "  3. dotfiles をクローンして setup.sh を実行してください:"
+echo "       git clone https://github.com/apahie/dotfiles.git ~/workspace/dotfiles"
+echo "       ~/workspace/dotfiles/setup.sh"
 echo ""
