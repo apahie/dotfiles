@@ -1,5 +1,4 @@
 #!/bin/bash
-# 事前に gh auth login -s user を実行してください
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -12,11 +11,14 @@ sudo apt install -y \
   fonts-noto-cjk # Playwright の headless Chromium で日本語表示に必要
 
 # Claude Code pptx スキル（document-skills:pptx）の依存パッケージ
+# libreoffice-impress: PPTX→PDF 変換（soffice）
+# poppler-utils: PDF→JPEG 変換（pdftoppm）
+# fonts-noto-color-emoji: 絵文字レンダリング
 echo "Claude Code pptx スキルの依存パッケージをインストール中..."
 sudo apt install -y \
-  libreoffice-impress \   # PPTX→PDF 変換（soffice）
-  poppler-utils \         # PDF→JPEG 変換（pdftoppm）
-  fonts-noto-color-emoji  # 絵文字レンダリング
+  libreoffice-impress \
+  poppler-utils \
+  fonts-noto-color-emoji
 
 # Docker Engine（miseではシステムデーモンを管理できないためaptでインストール）
 if ! command -v docker &>/dev/null; then
