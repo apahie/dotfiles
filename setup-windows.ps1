@@ -26,6 +26,7 @@ $packages = @(
     "7zip.7zip",
     "WinMerge.WinMerge",
     "astral-sh.uv",
+    "Anthropic.Claude",
     "Anthropic.ClaudeCode"
 )
 
