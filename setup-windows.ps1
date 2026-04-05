@@ -71,6 +71,12 @@ if ($failures.Count -gt 0) {
 }
 # WSL
 Write-Host "Installing: WSL" -ForegroundColor Cyan
-wsl --install
+$wslList = wsl --list --quiet 2>$null
+$wslInstalled = $wslList -match '\S'
+if ($wslInstalled) {
+    Write-Host "WSL distro already registered, skipping" -ForegroundColor Yellow
+} else {
+    wsl --install
+}
 
 Read-Host "Press Enter to close"
