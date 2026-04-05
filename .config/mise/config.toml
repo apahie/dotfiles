@@ -14,7 +14,6 @@ jq = "latest"
 yq = "latest"
 neovim = "latest"
 "npm:@playwright/cli" = "latest"
-"npm:skills" = "latest"
 
 [tasks.update]
 description = "ツールのアップデート"
@@ -32,11 +31,11 @@ mise run update-skills
 [tasks.update-skills]
 description = "Claude Codeスキルのインストール・アップデート"
 run = """
-INSTALLED=$(skills list -g --json | jq -r '.[].name')
+INSTALLED=$(npx --yes skills list -g --json | jq -r '.[].name')
 
 # 未インストールのリポジトリをインストール
-echo "$INSTALLED" | grep -q "^playwright-cli$" || skills add https://github.com/microsoft/playwright-cli --agent claude-code --skill '*' -y -g
+echo "$INSTALLED" | grep -q "^playwright-cli$" || npx --yes skills add https://github.com/microsoft/playwright-cli --agent claude-code --skill '*' -y -g
 
 # インストール済みスキルを更新
-skills update -g -y
+npx --yes skills update -g -y
 """
