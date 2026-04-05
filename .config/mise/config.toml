@@ -1,0 +1,41 @@
+[tools]
+go = "latest"
+node = "lts"
+rust = "stable"
+uv = "latest"
+
+starship = "latest"
+delta = "latest"
+bun = "latest"
+kubectl = "latest"
+helm = "latest"
+fzf = "latest"
+jq = "latest"
+yq = "latest"
+neovim = "latest"
+"npm:@playwright/cli" = "latest"
+
+[tasks.update]
+description = "ツールのアップデート"
+run = """
+echo "==> apt update & upgrade"
+sudo apt update && sudo apt upgrade -y
+echo "==> mise self-update"
+mise self-update -y
+echo "==> mise upgrade"
+mise upgrade
+echo "==> スキルのアップデート"
+mise run update-skills
+"""
+
+[tasks.update-skills]
+description = "Claude Codeスキルのインストール・アップデート"
+run = """
+INSTALLED=$(npx skills list -g --json 2>/dev/null | jq -r '.[].name' || echo "")
+
+# 未インストールのリポジトリをインストール
+echo "$INSTALLED" | grep -q "^playwright-cli$" || npx skills add https://github.com/microsoft/playwright-cli --agent claude-code --skill '*' -y -g
+
+# インストール済みスキルを更新
+npx skills update -g -y
+"""

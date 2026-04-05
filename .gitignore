@@ -1,0 +1,5 @@
+.claude/
+.claude-linux/worktrees/
+
+# npx skills でインストールされる外部スキル
+.claude-linux/skills/*/
