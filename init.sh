@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Fish shell
-sudo add-apt-repository ppa:fish-shell/release-4
+sudo add-apt-repository -y ppa:fish-shell/release-4
 sudo apt update
-sudo apt install fish
+sudo apt install -y fish
 chsh -s $(which fish)
 set -U fish_greeting
 
