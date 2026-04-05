@@ -32,11 +32,11 @@ mise run update-skills
 [tasks.update-skills]
 description = "Claude Codeスキルのインストール・アップデート"
 run = """
-INSTALLED=$(npx skills list -g --json 2>/dev/null | jq -r '.[].name' 2>/dev/null || echo "")
+INSTALLED=$(skills list -g --json | jq -r '.[].name')
 
 # 未インストールのリポジトリをインストール
-echo "$INSTALLED" | grep -q "^playwright-cli$" || npx skills add https://github.com/microsoft/playwright-cli --agent claude-code --skill '*' -y -g
+echo "$INSTALLED" | grep -q "^playwright-cli$" || skills add https://github.com/microsoft/playwright-cli --agent claude-code --skill '*' -y -g
 
 # インストール済みスキルを更新
-npx skills update -g -y
+skills update -g -y
 """
