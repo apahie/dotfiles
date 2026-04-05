@@ -6,7 +6,7 @@ sudo add-apt-repository -y ppa:fish-shell/release-4
 sudo apt update
 sudo apt install -y fish
 chsh -s $(which fish)
-set -U fish_greeting
+fish -c 'set -U fish_greeting'
 
 mkdir -p ~/.config/fish/functions
 cat > ~/.config/fish/functions/run-bash.fish << 'EOF'
