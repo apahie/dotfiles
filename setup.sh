@@ -145,10 +145,10 @@ echo "mise trust & install を実行中..."
 mise trust "$SCRIPT_DIR/.config/mise/config.toml"
 mise install
 
-# Claude Code - 外部スキル（npx skills）
+# アップデート（スキルのインストールを含む）
 echo ""
-echo "Claude Code スキルをインストール中..."
-mise run update-skills
+echo "アップデートを実行中..."
+mise run update
 
 # git config（delta）
 git config --global core.pager delta
