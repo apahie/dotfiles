@@ -126,6 +126,5 @@
     }
   },
   "alwaysThinkingEnabled": true,
-  "effortLevel": "high",
   "skipAutoPermissionPrompt": true
 }
