@@ -91,7 +91,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "jq -rj '[(if .model.display_name then \"🤖 \\(.model.display_name)\" else empty end),(if .context_window.used_percentage then \"💬 ctx:\\(.context_window.used_percentage|round)%\" else empty end),(if .rate_limits then \"🔋 5h:\\(.rate_limits.five_hour.used_percentage)% 7d:\\(.rate_limits.seven_day.used_percentage)%\" else empty end)]|join(\" | \")' 2>/dev/null"
+    "command": "jq -rj '[(if .model.display_name then \"🤖 \\(.model.display_name)\" else empty end),(if .context_window.used_percentage then \"💬 ctx:\\(.context_window.used_percentage|round)%\" else empty end),(if .rate_limits then \"🔋 5h:\\(.rate_limits.five_hour.used_percentage)% 7d:\\(.rate_limits.seven_day.used_percentage)% | 🔄 \\(.rate_limits.five_hour.resets_at | strflocaltime(\\\"%H:%M\\\"))\" else empty end)]|join(\" | \")' 2>/dev/null"
   },
   "enabledPlugins": {
     "gopls-lsp@claude-plugins-official": true,
