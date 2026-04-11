@@ -54,7 +54,7 @@
       "Bash(chmod +x:*)",
       "Bash(npx playwright:*)"
     ],
-    "defaultMode": "auto"
+    "defaultMode": "plan"
   },
   "hooks": {
     "Stop": [
