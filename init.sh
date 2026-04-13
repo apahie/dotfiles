@@ -5,7 +5,7 @@ set -euo pipefail
 sudo add-apt-repository -y ppa:fish-shell/release-4
 sudo apt update
 sudo apt install -y fish
-chsh -s $(which fish)
+chsh -s "$(which fish)" || echo "警告: シェル変更に失敗しました。手動で chsh -s $(which fish) を実行してください"
 fish -c 'set -U fish_greeting'
 
 mkdir -p ~/.config/fish/functions
