@@ -41,8 +41,12 @@ SOURCES
 fi
 
 # git config
-git config --global user.name "$(gh api user -q .login)"
-git config --global user.email "$(gh api user/emails -q '.[] | select(.primary) | .email')"
+if gh auth status &>/dev/null; then
+  git config --global user.name "$(gh api user -q .login)"
+  git config --global user.email "$(gh api user/emails -q '.[] | select(.primary) | .email')"
+else
+  echo "警告: gh が未認証のため git config user.name/email をスキップします"
+fi
 git config --global init.defaultBranch main
 git config --global core.quotepath false
 
@@ -70,6 +74,10 @@ link_file() {
   ln -s "$src" "$dest"
   echo "リンク作成: $dest -> $src"
 }
+
+# tmux
+link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
+link_file "$SCRIPT_DIR/.tmux" "$HOME/.tmux"
 
 # mise
 link_file "$SCRIPT_DIR/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
