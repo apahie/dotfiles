@@ -44,6 +44,40 @@ foreach ($pkg in $packages) {
     if ($LASTEXITCODE -notin $wingetOk) { $failures += $pkg }
 }
 
+# zenhan（IME全角/半角切替ツール）
+$binDir = Join-Path $HOME "bin"
+$zenhanPath = Join-Path $binDir "zenhan.exe"
+if (-not (Test-Path $zenhanPath)) {
+    New-Item -ItemType Directory -Path $binDir -Force | Out-Null
+    $zenhanUrl = "https://github.com/iuchim/zenhan/releases/download/v0.0.1/zenhan.zip"
+    $zenhanZip = Join-Path $env:TEMP "zenhan.zip"
+    Write-Host "Downloading: zenhan.exe" -ForegroundColor Cyan
+    try {
+        Invoke-WebRequest -Uri $zenhanUrl -OutFile $zenhanZip -UseBasicParsing
+        $extract = Join-Path $env:TEMP "zenhan"
+        Expand-Archive -Path $zenhanZip -DestinationPath $extract -Force
+        Copy-Item (Join-Path $extract "zenhan\bin64\zenhan.exe") $zenhanPath
+        # ファイルが正常にコピーされたか検証
+        if (-not (Test-Path $zenhanPath)) { throw "zenhan.exe のコピーに失敗しました" }
+        Write-Host "Installed: $zenhanPath" -ForegroundColor Green
+    } catch {
+        Remove-Item -Path $zenhanPath -Force -ErrorAction SilentlyContinue
+        Write-Host "Failed to install zenhan.exe: $_" -ForegroundColor Red
+        $failures += "zenhan"
+    } finally {
+        Remove-Item -Path $zenhanZip, (Join-Path $env:TEMP "zenhan") -Recurse -Force -ErrorAction SilentlyContinue
+    }
+} else {
+    Write-Host "Already exists: $zenhanPath" -ForegroundColor Yellow
+}
+
+# %USERPROFILE%\bin を PATH に追加（WSLからzenhan.exe等を呼び出すため）
+$userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+if ($userPath -notlike "*$binDir*") {
+    [Environment]::SetEnvironmentVariable("PATH", "$userPath;$binDir", "User")
+    Write-Host "Added to PATH: $binDir" -ForegroundColor Green
+}
+
 # Symlink PowerShell profile
 $profileSource = Join-Path $PSScriptRoot "Documents\PowerShell\Profile.ps1"
 $profileTarget = Join-Path $HOME "Documents\PowerShell\Profile.ps1"
@@ -64,13 +98,6 @@ foreach ($entry in $claudeLinks.GetEnumerator()) {
     Write-Host "Linked: $($entry.Key) -> $($entry.Value)" -ForegroundColor Green
 }
 
-Write-Host ""
-if ($failures.Count -gt 0) {
-    Write-Host "Setup completed with $($failures.Count) error(s):" -ForegroundColor Yellow
-    foreach ($f in $failures) { Write-Host "  - $f" -ForegroundColor Yellow }
-} else {
-    Write-Host "Setup completed" -ForegroundColor Green
-}
 # WSL
 Write-Host "Installing: WSL" -ForegroundColor Cyan
 $wslList = wsl --list --quiet 2>$null
@@ -79,6 +106,14 @@ if ($wslInstalled) {
     Write-Host "WSL distro already registered, skipping" -ForegroundColor Yellow
 } else {
     wsl --install
+}
+
+Write-Host ""
+if ($failures.Count -gt 0) {
+    Write-Host "Setup completed with $($failures.Count) error(s):" -ForegroundColor Yellow
+    foreach ($f in $failures) { Write-Host "  - $f" -ForegroundColor Yellow }
+} else {
+    Write-Host "Setup completed" -ForegroundColor Green
 }
 
 Read-Host "Press Enter to close"
