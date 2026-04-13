@@ -13,7 +13,9 @@ fzf = "latest"
 jq = "latest"
 yq = "latest"
 neovim = "latest"
+tmux = "latest"
 "npm:@playwright/cli" = "latest"
+"npm:@devcontainers/cli" = "latest"
 
 [tasks.update]
 description = "ツールのアップデート"
