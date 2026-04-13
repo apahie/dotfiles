@@ -1,8 +1,15 @@
+# tmux: claudeセッションがなければ作成して入る
+if not set -q TMUX
+    if not tmux has-session -t claude 2>/dev/null
+        exec tmux new-session -s claude
+    end
+end
+
 ~/.local/bin/mise activate fish | source
 fzf --fish | source
-docker completion fish | source
-helm completion fish | source
-kubectl completion fish | source
+command -q docker; and docker completion fish | source
+command -q helm; and helm completion fish | source
+command -q kubectl; and kubectl completion fish | source
 
 # abbreviations
 abbr -a kc kubectl
