@@ -16,6 +16,7 @@ neovim = "latest"
 tmux = "latest"
 "npm:@playwright/cli" = "latest"
 "npm:@devcontainers/cli" = "latest"
+"pipx:apm-cli" = "latest"
 
 [tasks.update]
 description = "ツールのアップデート"
@@ -26,18 +27,7 @@ echo "==> mise self-update"
 mise self-update -y
 echo "==> mise upgrade"
 mise upgrade
-echo "==> スキルのアップデート"
-mise run update-skills
-"""
-
-[tasks.update-skills]
-description = "Claude Codeスキルのインストール・アップデート"
-run = """
-INSTALLED=$(npx --yes skills list -g --json | jq -r '.[].name')
-
-# 未インストールのリポジトリをインストール
-echo "$INSTALLED" | grep -q "^playwright-cli$" || npx --yes skills add https://github.com/microsoft/playwright-cli --agent claude-code --skill '*' -y -g
-
-# インストール済みスキルを更新
-npx --yes skills update -g -y
+echo "==> スキルのインストール・アップデート (APM)"
+apm install -g
+apm deps update -g
 """

@@ -1,5 +1,9 @@
 .claude/
 .claude-linux/worktrees/
 
-# npx skills でインストールされる外部スキル
+# APM (Agent Package Manager) でインストールされる外部スキル
 .claude-linux/skills/*/
+
+
+# APM dependencies
+apm_modules/

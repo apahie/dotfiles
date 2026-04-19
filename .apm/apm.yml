@@ -1,0 +1,7 @@
+name: apahie-global-skills
+version: 1.0.0
+description: apahie's global Claude Code skills (managed by dotfiles)
+
+dependencies:
+  apm:
+    - microsoft/playwright-cli/skills/playwright-cli

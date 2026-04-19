@@ -147,6 +147,9 @@ done
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 
+# APM (Agent Package Manager) - グローバルスキル定義
+link_file "$SCRIPT_DIR/.apm/apm.yml" "$HOME/.apm/apm.yml"
+
 # my-vault
 if [ ! -d "$HOME/workspace/my-vault" ]; then
   echo "my-vault をクローン中..."
