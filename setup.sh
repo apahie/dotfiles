@@ -75,6 +75,14 @@ link_file() {
   echo "リンク作成: $dest -> $src"
 }
 
+# zenhan.exe（WSL環境でのIME制御用）
+if command -v cmd.exe &>/dev/null; then
+  WIN_HOME=$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")
+  if [ -f "$WIN_HOME/bin/zenhan.exe" ]; then
+    link_file "$WIN_HOME/bin/zenhan.exe" "$HOME/.local/bin/zenhan.exe"
+  fi
+fi
+
 # tmux
 link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 link_file "$SCRIPT_DIR/.tmux" "$HOME/.tmux"
