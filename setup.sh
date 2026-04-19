@@ -166,3 +166,6 @@ git config --global merge.conflictstyle diff3
 
 echo ""
 echo "セットアップ完了"
+echo ""
+echo "次のコマンドで fish を再初期化してください:"
+echo "  exec fish"
