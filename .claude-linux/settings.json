@@ -32,7 +32,12 @@
       "Bash(go build:*)",
       "Bash(npm install:*)",
       "Bash(npx playwright:*)",
-      "Bash(chmod +x:*)"
+      "Bash(chmod +x:*)",
+      "Bash(env)",
+      "Bash(journalctl:*)",
+      "Bash(mise list:*)",
+      "Bash(mise current)",
+      "Bash(mise where:*)"
     ],
     "defaultMode": "plan"
   },
