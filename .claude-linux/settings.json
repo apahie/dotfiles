@@ -41,7 +41,6 @@
     ],
     "defaultMode": "plan"
   },
-  "model": "opus",
   "hooks": {
     "Stop": [
       {
