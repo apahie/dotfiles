@@ -3,6 +3,8 @@
 
 # APM (Agent Package Manager) でインストールされる外部スキル
 .claude-linux/skills/*/
+# 自作スキルは追跡対象とする（APM 管理外）
+!.claude-linux/skills/report/
 
 
 # APM dependencies
