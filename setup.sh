@@ -151,6 +151,11 @@ for plugin in "${AGENT_SKILLS_PLUGINS[@]}"; do
   claude plugin install "$plugin@anthropic-agent-skills" 2>/dev/null || true
 done
 
+# Claude Code - skills（mvanhorn/last30days-skill）
+# Reddit/X/YouTube/HN 等を横断する調べもの用スキル。Routines から呼び出して深夜実行する想定
+claude plugin marketplace add https://github.com/mvanhorn/last30days-skill 2>/dev/null || true
+claude plugin install last30days@last30days-skill 2>/dev/null || true
+
 # Claude Code - skills, hooks（ディレクトリ単位）
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
