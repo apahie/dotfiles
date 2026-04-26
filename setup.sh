@@ -80,6 +80,8 @@ if command -v cmd.exe &>/dev/null; then
   WIN_HOME=$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")
   if [ -f "$WIN_HOME/bin/zenhan.exe" ]; then
     link_file "$WIN_HOME/bin/zenhan.exe" "$HOME/.local/bin/zenhan.exe"
+  else
+    echo "警告: $WIN_HOME/bin/zenhan.exe が見つかりません。tmux の C-Space (IME 切替) は機能しません。setup-windows.ps1 を実行してください。" >&2
   fi
 fi
 
