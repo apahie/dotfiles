@@ -5,7 +5,7 @@
 # stdin: SessionEnd フックの JSON ペイロード
 #   { "session_id": "...", "transcript_path": "...", "cwd": "...", "reason": "..." }
 #
-# 出力先: ~/workspace/${VAULT_NAME:-my-vault}/daily/YYYY/MM/YYYY-MM-DD.md
+# 出力先: ~/workspace/${VAULT_NAME:-my-vault}/daily/YYYY/MM/DD/YYYY-MM-DD.md
 # ログ:   ~/.claude/logs/auto-report.log
 #
 # 環境変数:
@@ -50,7 +50,7 @@ fi
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M)
 VAULT_NAME="${VAULT_NAME:-my-vault}"
-VAULT_DIR="$HOME/workspace/$VAULT_NAME/daily/$(date +%Y/%m)"
+VAULT_DIR="$HOME/workspace/$VAULT_NAME/daily/$(date +%Y/%m/%d)"
 NOTE="$VAULT_DIR/$DATE.md"
 mkdir -p "$VAULT_DIR"
 
