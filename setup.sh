@@ -121,6 +121,8 @@ PLUGINS=(
   ralph-loop                 # タスク完了まで同じプロンプトを繰り返し実行
   plugin-dev                 # プラグイン・スキル開発ツールキット
   security-guidance          # 編集時にセキュリティ問題を警告
+  session-report             # セッション使用状況のHTMLレポート生成
+  sourcegraph                # コードベース横断検索・参照トレース
   # LSP（Language Server Protocol）
   gopls-lsp                  # Go
   jdtls-lsp                  # Java
