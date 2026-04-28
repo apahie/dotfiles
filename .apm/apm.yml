@@ -4,4 +4,7 @@ description: apahie's global Claude Code skills (managed by dotfiles)
 
 dependencies:
   apm:
+    # Playwright CLI スキル（Web 操作自動化）
     - microsoft/playwright-cli/skills/playwright-cli
+    # Anthropic 公式 skill 群（ドキュメント処理・デザイン・skill 作成など）
+    - anthropics/skills
