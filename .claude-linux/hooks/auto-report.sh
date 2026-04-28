@@ -1,12 +1,16 @@
 #!/bin/bash
 # SessionEnd フックから呼ばれ、Claude Code セッションの要約を
-# my-vault の日次ノートに自動追記する。
+# 日次ノート vault に自動追記する。
 #
 # stdin: SessionEnd フックの JSON ペイロード
 #   { "session_id": "...", "transcript_path": "...", "cwd": "...", "reason": "..." }
 #
-# 出力先: ~/workspace/my-vault/daily/YYYY/MM/YYYY-MM-DD.md
+# 出力先: ~/workspace/${VAULT_NAME:-my-vault}/daily/YYYY/MM/YYYY-MM-DD.md
 # ログ:   ~/.claude/logs/auto-report.log
+#
+# 環境変数:
+# - VAULT_NAME: 出力先 vault のディレクトリ名（デフォルト: my-vault）
+#   overlay 側で上書きする想定（例: VAULT_NAME=work-vault）
 #
 # 設計方針:
 # - フックは常に exit 0 で終わる（セッション終了をブロックしない）
@@ -45,7 +49,8 @@ fi
 # --- 3. 出力先の準備 ---------------------------------------------------------
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M)
-VAULT_DIR="$HOME/workspace/my-vault/daily/$(date +%Y/%m)"
+VAULT_NAME="${VAULT_NAME:-my-vault}"
+VAULT_DIR="$HOME/workspace/$VAULT_NAME/daily/$(date +%Y/%m)"
 NOTE="$VAULT_DIR/$DATE.md"
 mkdir -p "$VAULT_DIR"
 
@@ -69,7 +74,7 @@ fi
 #
 # ★ プロンプトを編集して要約の質を調整できます
 PROMPT='以下は Claude Code セッションの transcript (JSONL) です。
-my-vault の日次ノートに記録する要約を、日本語の箇条書き 3〜7 点で作成してください。
+日次ノートに記録する要約を、日本語の箇条書き 3〜7 点で作成してください。
 
 方針:
 - 何を**決めたか**・何を**作ったか**・何を**学んだか** を中心に
