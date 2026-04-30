@@ -8,6 +8,7 @@ echo "apt パッケージをインストール中..."
 sudo apt install -y \
   tig \
   tree \
+  build-essential \
   fonts-noto-cjk # Playwright の headless Chromium で日本語表示に必要
 
 # Claude Code pptx スキル（document-skills:pptx）の依存パッケージ
@@ -99,6 +100,9 @@ link_file "$SCRIPT_DIR/.config/starship.toml" "$HOME/.config/starship.toml"
 # fish
 link_file "$SCRIPT_DIR/.config/fish/config.fish" "$HOME/.config/fish/config.fish"
 link_file "$SCRIPT_DIR/.config/fish/functions" "$HOME/.config/fish/functions"
+
+# nvim
+link_file "$SCRIPT_DIR/.config/nvim" "$HOME/.config/nvim"
 
 # Claude Code - settings
 link_file "$SCRIPT_DIR/.claude-linux/settings.json" "$HOME/.claude/settings.json"
