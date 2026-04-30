@@ -10,24 +10,32 @@ end
 vim.opt.rtp:prepend(lazypath)
 
 require("lazy").setup({
-  -- カラースキーム
+  ----------------------------------------------------------------
+  -- 1. カラースキーム
+  ----------------------------------------------------------------
   {
     "folke/tokyonight.nvim",
     lazy = false,
     priority = 1000,
-    config = function()
-      vim.cmd.colorscheme("tokyonight-night")
+    opts = {
+      style = "night",     -- night / storm / moon / day
+      transparent = false,
+    },
+    config = function(_, opts)
+      require("tokyonight").setup(opts)
+      vim.cmd.colorscheme("tokyonight")
     end,
   },
 
-  -- 構文解析ベースのハイライト
+  ----------------------------------------------------------------
+  -- 2. 構文解析ベースのハイライト（リライト後の新 API）
+  ----------------------------------------------------------------
   {
     "nvim-treesitter/nvim-treesitter",
     branch = "master",
     build = ":TSUpdate",
     lazy = false,
     config = function()
-      -- パーサ install（バックグラウンドで非同期。再起動後に有効化）
       require("nvim-treesitter").install({
         "lua", "vim", "vimdoc",
         "bash", "fish",
@@ -37,7 +45,6 @@ require("lazy").setup({
         "java", "python",
         "terraform", "hcl",
       })
-      -- ファイル種別ごとにハイライト開始（パーサ未 install ならスキップ）
       vim.api.nvim_create_autocmd("FileType", {
         callback = function()
           pcall(vim.treesitter.start)
@@ -46,9 +53,12 @@ require("lazy").setup({
     end,
   },
 
-  -- ファイル / grep ファインダ
+  ----------------------------------------------------------------
+  -- 3. ファイル / grep ファインダ
+  ----------------------------------------------------------------
   {
     "nvim-telescope/telescope.nvim",
+    cmd = "Telescope",
     dependencies = { "nvim-lua/plenary.nvim" },
     keys = {
       { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "ファイル検索" },
@@ -56,19 +66,34 @@ require("lazy").setup({
       { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "バッファ一覧" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "ヘルプ検索" },
     },
+    opts = {},
   },
 
-  -- git 差分（行頭サイン）
+  ----------------------------------------------------------------
+  -- 4. git 差分（行頭サイン・blame）
+  ----------------------------------------------------------------
   {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPre", "BufNewFile" },
-    opts = {},
+    opts = {
+      signs = {
+        add          = { text = "│" },
+        change       = { text = "│" },
+        delete       = { text = "_" },
+        topdelete    = { text = "‾" },
+        changedelete = { text = "~" },
+      },
+    },
   },
 
-  -- キーバインドのヘルプ表示
+  ----------------------------------------------------------------
+  -- 5. キーバインドのヘルプ表示（v3 系）
+  ----------------------------------------------------------------
   {
     "folke/which-key.nvim",
     event = "VeryLazy",
-    opts = {},
+    opts = {
+      preset = "modern",
+    },
   },
 })

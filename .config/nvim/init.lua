@@ -1,3 +1,6 @@
+-- Lua モジュールロードを高速化（Neovim 0.9+）
+vim.loader.enable()
+
 -- 基本設定とプラグインを読み込む
 require("options")
 require("keymaps")
