@@ -23,20 +23,25 @@ require("lazy").setup({
   -- 構文解析ベースのハイライト
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "master",
     build = ":TSUpdate",
+    lazy = false,
     config = function()
-      require("nvim-treesitter.configs").setup({
-        ensure_installed = {
-          "lua", "vim", "vimdoc",
-          "bash", "fish",
-          "go", "javascript", "typescript", "tsx",
-          "json", "yaml", "toml",
-          "markdown", "markdown_inline",
-          "java", "python",
-          "terraform", "hcl",
-        },
-        highlight = { enable = true },
-        indent = { enable = true },
+      -- パーサ install（バックグラウンドで非同期。再起動後に有効化）
+      require("nvim-treesitter").install({
+        "lua", "vim", "vimdoc",
+        "bash", "fish",
+        "go", "javascript", "typescript", "tsx",
+        "json", "yaml", "toml",
+        "markdown", "markdown_inline",
+        "java", "python",
+        "terraform", "hcl",
+      })
+      -- ファイル種別ごとにハイライト開始（パーサ未 install ならスキップ）
+      vim.api.nvim_create_autocmd("FileType", {
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
       })
     end,
   },
