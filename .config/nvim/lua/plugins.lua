@@ -28,27 +28,26 @@ require("lazy").setup({
   },
 
   ----------------------------------------------------------------
-  -- 2. 構文解析ベースのハイライト（リライト後の新 API）
+  -- 2. 構文解析ベースのハイライト
+  -- main ブランチ（実質旧 API）。新 API のリライトは現時点で撤退中
   ----------------------------------------------------------------
   {
     "nvim-treesitter/nvim-treesitter",
-    branch = "master",
     build = ":TSUpdate",
     lazy = false,
     config = function()
-      require("nvim-treesitter").install({
-        "lua", "vim", "vimdoc",
-        "bash", "fish",
-        "go", "javascript", "typescript", "tsx",
-        "json", "yaml", "toml",
-        "markdown", "markdown_inline",
-        "java", "python",
-        "terraform", "hcl",
-      })
-      vim.api.nvim_create_autocmd("FileType", {
-        callback = function()
-          pcall(vim.treesitter.start)
-        end,
+      require("nvim-treesitter.configs").setup({
+        ensure_installed = {
+          "lua", "vim", "vimdoc",
+          "bash", "fish",
+          "go", "javascript", "typescript", "tsx",
+          "json", "yaml", "toml",
+          "markdown", "markdown_inline",
+          "java", "python",
+          "terraform", "hcl",
+        },
+        highlight = { enable = true },
+        indent = { enable = true },
       })
     end,
   },
@@ -66,7 +65,14 @@ require("lazy").setup({
       { "<leader>fb", "<cmd>Telescope buffers<cr>",    desc = "バッファ一覧" },
       { "<leader>fh", "<cmd>Telescope help_tags<cr>",  desc = "ヘルプ検索" },
     },
-    opts = {},
+    opts = {
+      defaults = {
+        file_ignore_patterns = { "%.git/" },  -- .git/ 配下は除外
+      },
+      pickers = {
+        find_files = { hidden = true },        -- .git 以外の隠しファイルは表示
+      },
+    },
   },
 
   ----------------------------------------------------------------
