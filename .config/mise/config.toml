@@ -23,6 +23,7 @@ tmux = "latest"
 [tasks.update]
 description = "ツールのアップデート"
 run = """
+set -euo pipefail
 echo "==> apt update & upgrade"
 sudo apt update && sudo apt upgrade -y
 echo "==> mise self-update"
