@@ -146,10 +146,8 @@ link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 
 # APM (Agent Package Manager) - グローバルスキル定義
-# 実体のインストールは末尾の `mise run update` で実行される
-# - anthropics/skills: Anthropic 公式 skill 群（pdf, docx, xlsx, pptx, frontend-design 等）
-# - mvanhorn/last30days-skill: SNS 横断調べもの用スキル
-# - microsoft/playwright-cli: Web 操作自動化スキル
+# 実体のインストールは末尾の `mise run update` 内の `apm install -g` で実行される
+# 依存パッケージは .apm/apm.yml を参照
 link_file "$SCRIPT_DIR/.apm/apm.yml" "$HOME/.apm/apm.yml"
 
 # my-vault
