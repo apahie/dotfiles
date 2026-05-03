@@ -8,3 +8,5 @@ dependencies:
     - microsoft/playwright-cli/skills/playwright-cli
     # Anthropic 公式 skill 群（ドキュメント処理・デザイン・skill 作成など）
     - anthropics/skills
+    # last30days スキル（Reddit/X/YouTube/HN 等の横断調査）
+    - mvanhorn/last30days-skill/skills/last30days
