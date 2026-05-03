@@ -141,26 +141,15 @@ for plugin in "${PLUGINS[@]}"; do
   claude plugin install "$plugin@claude-plugins-official" 2>/dev/null || true
 done
 
-# Claude Code - plugins（anthropic-agent-skills）
-# マーケットプレイスを追加してからインストール
-claude plugin marketplace add https://github.com/anthropics/skills 2>/dev/null || true
-AGENT_SKILLS_PLUGINS=(
-  document-skills            # ドキュメント処理（Excel, Word, PowerPoint, PDF）
-)
-for plugin in "${AGENT_SKILLS_PLUGINS[@]}"; do
-  claude plugin install "$plugin@anthropic-agent-skills" 2>/dev/null || true
-done
-
-# Claude Code - skills（mvanhorn/last30days-skill）
-# Reddit/X/YouTube/HN 等を横断する調べもの用スキル。Routines から呼び出して深夜実行する想定
-claude plugin marketplace add https://github.com/mvanhorn/last30days-skill 2>/dev/null || true
-claude plugin install last30days@last30days-skill 2>/dev/null || true
-
 # Claude Code - skills, hooks（ディレクトリ単位）
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 
 # APM (Agent Package Manager) - グローバルスキル定義
+# 実体のインストールは末尾の `mise run update` で実行される
+# - anthropics/skills: Anthropic 公式 skill 群（pdf, docx, xlsx, pptx, frontend-design 等）
+# - mvanhorn/last30days-skill: SNS 横断調べもの用スキル
+# - microsoft/playwright-cli: Web 操作自動化スキル
 link_file "$SCRIPT_DIR/.apm/apm.yml" "$HOME/.apm/apm.yml"
 
 # my-vault

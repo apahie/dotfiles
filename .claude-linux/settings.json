@@ -110,17 +110,8 @@
     "ralph-loop@claude-plugins-official": true,
     "plugin-dev@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "document-skills@anthropic-agent-skills": true,
     "session-report@claude-plugins-official": true,
     "sourcegraph@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "anthropic-agent-skills": {
-      "source": {
-        "source": "git",
-        "url": "https://github.com/anthropics/skills.git"
-      }
-    }
   },
   "alwaysThinkingEnabled": true,
   "remoteControlAtStartup": true,
