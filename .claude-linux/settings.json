@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/notify.sh 'タスクが完了しました'"
+            "command": "printf '\\a' >/dev/tty 2>/dev/null"
           }
         ]
       }
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/notify.sh '入力を待っています'"
+            "command": "printf '\\a' >/dev/tty 2>/dev/null"
           }
         ]
       }
