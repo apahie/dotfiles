@@ -29,10 +29,12 @@ require("lazy").setup({
 
   ----------------------------------------------------------------
   -- 2. 構文解析ベースのハイライト
-  -- main ブランチ（実質旧 API）。新 API のリライトは現時点で撤退中
+  -- master ブランチ（旧 API 維持・凍結）。main は完全リライト後 2026-04 に archived
+  -- 公式後継 neovim/nvim-treeconfig (issue #39006) の実装を待つ間の暫定運用
   ----------------------------------------------------------------
   {
     "nvim-treesitter/nvim-treesitter",
+    branch = "master",
     build = ":TSUpdate",
     lazy = false,
     config = function()
