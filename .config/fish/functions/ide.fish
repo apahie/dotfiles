@@ -33,9 +33,12 @@ function ide --description '左で claude、右で nvim を起動 (-w/--worktree
     # claude が exit したら右ペインも閉じる
     tmux kill-pane -t $right 2>/dev/null
 
-    # worktree モードなら自動削除
+    # worktree モードなら削除を試行 (未コミットがあれば残す)
     if test -n "$wt_name"
-        git worktree remove --force $work_dir
-        and echo "worktree を削除しました: $wt_name"
+        if git worktree remove $work_dir 2>/dev/null
+            echo "worktree を削除しました: $wt_name"
+        else
+            echo "worktree に未コミット変更があるため残しました: $work_dir"
+        end
     end
 end
