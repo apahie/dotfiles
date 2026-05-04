@@ -16,7 +16,8 @@ fi
 MESSAGE="${1:-タスクが完了しました}"
 
 # 環境変数経由でPowerShellに値を渡す（インジェクション防止）
-NOTIFY_TITLE="$TITLE" NOTIFY_MESSAGE="$MESSAGE" powershell.exe -Command '
+# WSLENV に列挙しないと WSL → Windows プロセスに変数が伝達されないため明示する
+WSLENV="${WSLENV:+$WSLENV:}NOTIFY_TITLE:NOTIFY_MESSAGE" NOTIFY_TITLE="$TITLE" NOTIFY_MESSAGE="$MESSAGE" powershell.exe -Command '
 $null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
 $null = [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
 
