@@ -119,14 +119,12 @@ PLUGINS=(
   explanatory-output-style   # 実装理由の教育的解説を追加
   feature-dev                # 探索→設計→レビューの構造化された機能開発
   hookify                    # 会話パターンからフックを自動生成
-  learning-output-style      # ユーザーにコード貢献を求める学習モード
   playground                 # インタラクティブHTMLプレイグラウンド作成
   pr-review-toolkit          # 6種の専門エージェントによるPRレビュー
   ralph-loop                 # タスク完了まで同じプロンプトを繰り返し実行
   plugin-dev                 # プラグイン・スキル開発ツールキット
   security-guidance          # 編集時にセキュリティ問題を警告
   session-report             # セッション使用状況のHTMLレポート生成
-  sourcegraph                # コードベース横断検索・参照トレース
   # LSP（Language Server Protocol）
   gopls-lsp                  # Go
   jdtls-lsp                  # Java
