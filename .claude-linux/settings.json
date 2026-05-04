@@ -37,7 +37,8 @@
       "Bash(journalctl:*)",
       "Bash(mise list:*)",
       "Bash(mise current)",
-      "Bash(mise where:*)"
+      "Bash(mise where:*)",
+      "Bash(tmux capture-pane:*)"
     ],
     "defaultMode": "auto"
   },
