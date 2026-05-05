@@ -27,17 +27,19 @@ function ide --description '開発環境起動 (-w/--worktree[=<name>] で workt
         or return 1
     end
 
-    # 下 pane に scratch terminal (window を上下分割、下 25%)
-    set -l scratch (tmux split-window -v -d -p 25 -P -F '#{pane_id}' -c $work_dir)
-    tmux select-pane -t $scratch -T scratch
+    # 下 pane: terminal (window を上下分割、下 25%)
+    set -l term_pane (tmux split-window -v -d -p 25 -P -F '#{pane_id}' -c $work_dir)
+    tmux select-pane -t $term_pane -T terminal
 
-    # 上 pane の右側に nvim (上を左右分割、デフォルト 50/50)
-    tmux split-window -h -d -c $work_dir 'nvim .'
+    # 上 pane の右側: nvim (左右 50/50)
+    set -l nvim_pane (tmux split-window -h -d -P -F '#{pane_id}' -c $work_dir 'nvim .')
+    tmux select-pane -t $nvim_pane -T nvim
 
-    # 左 pane (現 pane) で claude を起動
+    # 左 pane (現 pane): claude
     # 注意: fish は関数内フォアグラウンドコマンドが SIGTSTP で停止しても
     #       関数を suspend せず次行に進む。よって claude の直後に
     #       破壊的処理 (kill-pane, worktree remove) を書いてはいけない。
+    tmux select-pane -T claude
     pushd $work_dir
     claude
     popd
