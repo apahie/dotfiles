@@ -2,3 +2,6 @@
 
 # ide.fish が作る worktree を全 repo で ignore
 .worktrees/
+
+# 個人メモ・個人設定 (例: memo.local.md, notes.local.md, config.local.yml)
+*.local.*
