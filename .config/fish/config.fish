@@ -17,6 +17,7 @@ command -q kubectl; and kubectl completion fish | source
 
 # abbreviations
 abbr -a kc kubectl
+abbr -a gw 'git worktree'
 
 # Windows Terminal でペイン分割・新タブ時にカレントディレクトリを引き継ぐ (OSC 9;9)
 # https://learn.microsoft.com/en-us/windows/terminal/tutorials/new-tab-same-directory
