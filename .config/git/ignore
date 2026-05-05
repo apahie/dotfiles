@@ -1,0 +1,4 @@
+# git の global ignore (XDG: ~/.config/git/ignore)
+
+# ide.fish が作る worktree を全 repo で ignore
+.worktrees/

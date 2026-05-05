@@ -90,6 +90,9 @@ fi
 link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 link_file "$SCRIPT_DIR/.tmux" "$HOME/.tmux"
 
+# git global ignore
+link_file "$SCRIPT_DIR/.config/git/ignore" "$HOME/.config/git/ignore"
+
 # mise
 link_file "$SCRIPT_DIR/.config/mise/config.toml" "$HOME/.config/mise/config.toml"
 
