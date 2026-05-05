@@ -1,14 +1,13 @@
-function ide --description '左で claude、右で nvim を起動 (-w/--worktree で worktree 内に隔離)'
+function ide --description '開発環境起動 (-w/--worktree[=<name>] で worktree 隔離)'
     if not set -q TMUX
         echo "tmux内で実行してください"
         return 1
     end
 
-    argparse 'w/worktree' -- $argv
+    argparse 'w/worktree=?' -- $argv
     or return 1
 
     set -l work_dir $PWD
-    set -l wt_name ""
 
     if set -q _flag_worktree
         set -l repo_root (git rev-parse --show-toplevel 2>/dev/null)
@@ -17,28 +16,25 @@ function ide --description '左で claude、右で nvim を起動 (-w/--worktree
             return 1
         end
 
-        set wt_name "ide-"(date +%Y%m%d-%H%M%S)
+        # 値指定があればそれを worktree 名にし、なければ ide-DATE
+        set -l wt_name $_flag_worktree
+        if test -z "$wt_name"
+            set wt_name "ide-"(date +%Y%m%d-%H%M%S)
+        end
         set work_dir "$repo_root/.worktrees/$wt_name"
 
         git worktree add -b $wt_name $work_dir
         or return 1
     end
 
-    # 右ペインで nvim を作業ディレクトリで起動、ペインID を保存
-    set -l right (tmux split-window -h -d -P -F '#{pane_id}' -c $work_dir 'nvim .')
-    # 現在ペイン(左)で claude を作業ディレクトリで起動 (ブロッキング)
+    # 右ペインで nvim を作業ディレクトリで起動
+    tmux split-window -h -d -c $work_dir 'nvim .'
+
+    # 左ペイン (現 pane) で claude を起動
+    # 注意: fish は関数内フォアグラウンドコマンドが SIGTSTP で停止しても
+    #       関数を suspend せず次行に進む。よって claude の直後に
+    #       破壊的処理 (kill-pane, worktree remove) を書いてはいけない。
     pushd $work_dir
     claude
     popd
-    # claude が exit したら右ペインも閉じる
-    tmux kill-pane -t $right 2>/dev/null
-
-    # worktree モードなら削除を試行 (未コミットがあれば残す)
-    if test -n "$wt_name"
-        if git worktree remove $work_dir 2>/dev/null
-            echo "worktree を削除しました: $wt_name"
-        else
-            echo "worktree に未コミット変更があるため残しました: $work_dir"
-        end
-    end
 end
