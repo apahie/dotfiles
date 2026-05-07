@@ -106,19 +106,24 @@ require("lazy").setup({
   },
 
   ----------------------------------------------------------------
-  -- 6. ファイラ (バッファ編集型)
-  -- ディレクトリを編集可能バッファとして扱う。`-` で親ディレクトリへ
+  -- 6. ファイラ (サイドバー型ツリー)
+  -- <leader>e でトグル。netrw は競合するため無効化
   ----------------------------------------------------------------
   {
-    "stevearc/oil.nvim",
-    lazy = false,  -- 公式 README で lazy load 非推奨
-    opts = {
-      view_options = {
-        show_hidden = true,  -- 隠しファイルもデフォルト表示 (dotfiles 編集が多いため)
-      },
-    },
+    "nvim-tree/nvim-tree.lua",
+    cmd = { "NvimTreeToggle", "NvimTreeFindFile" },
     keys = {
-      { "-", "<cmd>Oil<cr>", desc = "親ディレクトリを開く (oil)" },
+      { "<leader>e", "<cmd>NvimTreeToggle<cr>", desc = "ファイルツリー" },
+    },
+    init = function()
+      -- netrw は nvim-tree と競合するため無効化 (公式 README 推奨)
+      vim.g.loaded_netrw = 1
+      vim.g.loaded_netrwPlugin = 1
+    end,
+    opts = {
+      filters = {
+        dotfiles = false,  -- 隠しファイルも表示 (dotfiles 編集が多いため)
+      },
     },
   },
 })
