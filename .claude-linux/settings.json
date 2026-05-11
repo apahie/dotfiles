@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '\\a[hook:Stop]\\n' >/dev/tty 2>/dev/null"
+            "command": "printf '\\a' >/dev/tty 2>/dev/null"
           }
         ]
       }
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '\\a[hook:Notification]\\n' >/dev/tty 2>/dev/null"
+            "command": "printf '\\a' >/dev/tty 2>/dev/null"
           }
         ]
       }
@@ -69,7 +69,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '[hook:SubagentStop no-bell]\\n' >/dev/tty 2>/dev/null"
+            "command": "exit 0"
           }
         ]
       }
