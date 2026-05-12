@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "exec 2>/dev/null; printf '\\a' >/dev/tty; exit 0"
+            "command": "exec 2>/dev/null; T=$(tmux display-message -p '#{client_tty}'); [ -n \"$T\" ] && printf '\\a' >\"$T\"; exit 0"
           }
         ]
       }
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "exec 2>/dev/null; printf '\\a' >/dev/tty; exit 0"
+            "command": "exec 2>/dev/null; T=$(tmux display-message -p '#{client_tty}'); [ -n \"$T\" ] && printf '\\a' >\"$T\"; exit 0"
           }
         ]
       }
