@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -w /dev/tty ] && printf '\\a' >/dev/tty 2>/dev/null; exit 0"
+            "command": "exec 2>/dev/null; printf '\\a' >/dev/tty; exit 0"
           }
         ]
       }
@@ -59,7 +59,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -w /dev/tty ] && printf '\\a' >/dev/tty 2>/dev/null; exit 0"
+            "command": "exec 2>/dev/null; printf '\\a' >/dev/tty; exit 0"
           }
         ]
       }
