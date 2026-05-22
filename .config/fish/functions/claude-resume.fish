@@ -9,6 +9,8 @@
 #   各ファイルから cwd / gitBranch / sessionId を抽出。cwd が現存するものだけを
 #   fzf に渡し、選んだセッションへ cd → claude --resume <sid>。
 #   削除済み worktree (cwd が消えたもの) は自動で除外する。
+#   session-report などプラグインが prompt を queue 投入したセッション
+#   ("type":"queue-operation" で始まるもの) も除外する。
 #   mtime = JSONL 最終 record の timestamp ＝ 最後に触った時刻。
 
 function claude-resume --description '最近の Claude Code セッションを fzf で選んで再開'
@@ -34,6 +36,11 @@ function claude-resume --description '最近の Claude Code セッションを f
         set -l parts (string split \t -- $line)
         set -l ago $parts[2]
         set -l file $parts[3]
+
+        # session-report 等プラグインが prompt を queue 投入したセッションは除外
+        if head -3 $file | grep -q '"type":"queue-operation"'
+            continue
+        end
 
         set -l cwd (grep -m1 -o '"cwd":"[^"]*"' $file \
             | string replace -r '"cwd":"(.*)"' '$1')
