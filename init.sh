@@ -26,16 +26,9 @@ echo '~/.local/bin/mise activate fish | source' >> ~/.config/fish/config.fish
 # Claude Code
 curl -fsSL https://claude.ai/install.sh | bash
 
-# GitHub CLI
-(type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
-    && sudo mkdir -p -m 755 /etc/apt/keyrings \
-    && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-    && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
-    && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && sudo apt update \
-    && sudo apt install gh -y
+# GitHub CLI（mise でグローバル管理。認証は init.sh 後に `gh auth login` で実施）
+# setup.sh の git config（gh api user）より前に gh が必要なため、ここで先に入れる。
+~/.local/bin/mise use -g gh@latest
 
 # workspace ディレクトリ
 mkdir -p $HOME/workspace
