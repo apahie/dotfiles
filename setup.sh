@@ -50,6 +50,10 @@ else
 fi
 git config --global init.defaultBranch main
 git config --global core.quotepath false
+# gh を git の認証ヘルパーに設定。gh auth login は gh 実行ファイルの絶対パスを
+# 書き込むため mise の gh だとバージョン更新で壊れる。PATH 解決の `!gh` に固定する。
+git config --global --replace-all credential.https://github.com.helper "!gh auth git-credential"
+git config --global --replace-all credential.https://gist.github.com.helper "!gh auth git-credential"
 
 # シンボリックリンクを作成する関数
 link_file() {
