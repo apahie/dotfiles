@@ -1,0 +1,16 @@
+# dotfiles 管理の共通 git 設定
+# ~/.gitconfig から [include] で読み込まれる（symlink せず repo 内の実体をパス参照）。
+# 動的な user.name/email と、gh と競合する credential.helper は
+# ~/.gitconfig 側に setup.sh が命令的に設定する。
+
+[init]
+	defaultBranch = main
+[core]
+	quotepath = false
+	pager = delta
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+[merge]
+	conflictstyle = diff3

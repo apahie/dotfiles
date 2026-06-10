@@ -48,8 +48,8 @@ if gh auth status &>/dev/null; then
 else
   echo "警告: gh が未認証のため git config user.name/email をスキップします"
 fi
-git config --global init.defaultBranch main
-git config --global core.quotepath false
+# 共通設定は .config/git/config に集約し include で読み込む（symlink せず repo 内をパス参照）
+git config --global --replace-all include.path "$SCRIPT_DIR/.config/git/config"
 # gh を git の認証ヘルパーに設定。gh auth login は gh 実行ファイルの絶対パスを
 # 書き込むため mise の gh だとバージョン更新で壊れる。PATH 解決の `!gh` に固定する。
 git config --global --replace-all credential.https://github.com.helper "!gh auth git-credential"
@@ -173,12 +173,6 @@ mise install
 echo ""
 echo "アップデートを実行中..."
 mise run update
-
-# git config（delta）
-git config --global core.pager delta
-git config --global interactive.diffFilter "delta --color-only"
-git config --global delta.navigate true
-git config --global merge.conflictstyle diff3
 
 echo ""
 echo "セットアップ完了"
