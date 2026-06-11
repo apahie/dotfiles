@@ -5,6 +5,7 @@
 .claude-linux/skills/*/
 # 自作スキルは追跡対象とする（APM 管理外）
 !.claude-linux/skills/report/
+!.claude-linux/skills/issue-readiness/
 
 
 # APM dependencies
