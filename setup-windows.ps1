@@ -21,7 +21,7 @@ $packages = @(
     "Google.Chrome",
     "Google.GoogleDrive",
     "Obsidian.Obsidian",
-    "Amazon.Kindle",
+    "9P8JQ0JJSTLL",  # Amazon Kindle (MS Store版)
     "Valve.Steam",
     "7zip.7zip",
     "WinMerge.WinMerge",
@@ -37,6 +37,9 @@ foreach ($pkg in $packages) {
     $wingetArgs = @("install", "-e", "--id", $pkg, "--accept-source-agreements", "--accept-package-agreements")
     if ($pkg -eq "Microsoft.VisualStudioCode") {
         $wingetArgs += "--custom", "/VERYSILENT /MERGETASKS=!runcode,addcontextmenufiles,addcontextmenufolders,addtopath"
+    }
+    if ($pkg -eq "9P8JQ0JJSTLL") {
+        $wingetArgs += "--source", "msstore"
     }
     & winget @wingetArgs
     # 0: success, -1978335189: already up to date
