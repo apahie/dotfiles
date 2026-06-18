@@ -28,8 +28,7 @@ $packages = @(
     "astral-sh.uv",
     "jqlang.jq",
     "MikeFarah.yq",
-    "Anthropic.Claude",
-    "Anthropic.ClaudeCode"
+    "Anthropic.Claude"
 )
 
 foreach ($pkg in $packages) {
@@ -45,6 +44,22 @@ foreach ($pkg in $packages) {
     # 0: success, -1978335189: already up to date
     $wingetOk = @(0, -1978335189)
     if ($LASTEXITCODE -notin $wingetOk) { $failures += $pkg }
+}
+
+# Claude Code（公式 native installer。バックグラウンドで自動更新される）
+$claudeExe = Join-Path $env:USERPROFILE ".local\bin\claude.exe"
+if (Test-Path $claudeExe) {
+    Write-Host "Already exists: Claude Code" -ForegroundColor Yellow
+} else {
+    Write-Host "Installing: Claude Code" -ForegroundColor Cyan
+    try {
+        Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression
+        if (-not (Test-Path $claudeExe)) { throw "claude.exe が見つかりません" }
+        Write-Host "Installed: $claudeExe" -ForegroundColor Green
+    } catch {
+        Write-Host "Failed to install Claude Code: $_" -ForegroundColor Red
+        $failures += "Claude Code"
+    }
 }
 
 # zenhan（IME全角/半角切替ツール）
