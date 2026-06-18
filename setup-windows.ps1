@@ -32,7 +32,7 @@ $packages = @(
 )
 
 foreach ($pkg in $packages) {
-    Write-Host "Installing: $pkg" -ForegroundColor Cyan
+    Write-Host "Installing: $pkg ... " -ForegroundColor Cyan -NoNewline
     $wingetArgs = @("install", "-e", "--id", $pkg, "--accept-source-agreements", "--accept-package-agreements")
     if ($pkg -eq "Microsoft.VisualStudioCode") {
         $wingetArgs += "--custom", "/VERYSILENT /MERGETASKS=!runcode,addcontextmenufiles,addcontextmenufolders,addtopath"
@@ -40,10 +40,16 @@ foreach ($pkg in $packages) {
     if ($pkg -eq "9P8JQ0JJSTLL") {
         $wingetArgs += "--source", "msstore"
     }
-    & winget @wingetArgs
-    # 0: success, -1978335189: already up to date
-    $wingetOk = @(0, -1978335189)
-    if ($LASTEXITCODE -notin $wingetOk) { $failures += $pkg }
+    $output = & winget @wingetArgs 2>&1
+    switch ($LASTEXITCODE) {
+        0           { Write-Host "done" -ForegroundColor Green }
+        -1978335189 { Write-Host "up to date" -ForegroundColor Yellow }  # アップグレード対象なし
+        default {
+            Write-Host "failed (exit $LASTEXITCODE)" -ForegroundColor Red
+            $output | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
+            $failures += $pkg
+        }
+    }
 }
 
 # Claude Code（公式 native installer。バックグラウンドで自動更新される）
