@@ -10,3 +10,6 @@ dependencies:
     - anthropics/skills
     # last30days スキル（Reddit/X/YouTube/HN 等の横断調査）
     - mvanhorn/last30days-skill/skills/last30days
+    # 日本語技術文書の文章規範スキル（gist 公開・単一 SKILL.md。マニフェスト無しのため git URL 直指定）
+    - git: https://gist.github.com/k16shikano/fd287c3133457c4fd8f5601d34aa817d.git
+      alias: japanese-tech-writing
