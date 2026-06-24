@@ -5,9 +5,9 @@
 #   claude-resume <args>   # 追加引数はそのまま claude に渡る (例: --model opus)
 #
 # 仕組み:
-#   ~/.claude/projects/*/*.jsonl を mtime 降順で最大 50 件拾い、
-#   各ファイルから cwd / gitBranch / sessionId を抽出。cwd が現存するものだけを
-#   fzf に渡し、選んだセッションへ cd → claude --resume <sid>。
+#   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
+#   cwd / gitBranch / sessionId を抽出。レポート / 消滅 cwd を除外した後の
+#   最新 50 件を fzf に渡し、選んだセッションへ cd → claude --resume <sid>。
 #   削除済み worktree (cwd が消えたもの) は自動で除外する。
 #   session-report などプラグインが prompt を queue 投入したセッション
 #   ("type":"queue-operation" で始まるもの) も除外する。
@@ -20,11 +20,13 @@ function claude-resume --description '最近の Claude Code セッションを f
         return 1
     end
 
-    # mtime\t日時\tパス を 50 件まで
+    # mtime\t日時\tパス を新しい順に取得する。
+    # レポート / 消滅 cwd のフィルタで多くが落ちるため多めに拾い、
+    # 表示件数の cap はフィルタを通した後にかける。
     set -l recent (
         find "$projects" -maxdepth 2 -name '*.jsonl' -type f \
             -printf '%T@\t%TY-%Tm-%Td %TH:%TM\t%p\n' 2>/dev/null \
-        | sort -rn | head -50
+        | sort -rn | head -400
     )
     if test (count $recent) -eq 0
         echo "セッションがありません" >&2
@@ -54,6 +56,11 @@ function claude-resume --description '最近の Claude Code セッションを f
         set -l sid (path basename $file | string replace '.jsonl' '')
 
         set -a rows (printf '%s\t%s\t%s\t%s' $ago $cwd $branch $sid)
+    end
+
+    # フィルタを通過した実セッションのうち、最新 50 件だけを表示する。
+    if test (count $rows) -gt 50
+        set rows $rows[1..50]
     end
 
     if test (count $rows) -eq 0
