@@ -126,6 +126,12 @@ foreach ($entry in $claudeLinks.GetEnumerator()) {
     Write-Host "Linked: $($entry.Key) -> $($entry.Value)" -ForegroundColor Green
 }
 
+# Symlink .wslconfig
+$wslConfigSource = Join-Path $PSScriptRoot ".wslconfig"
+$wslConfigTarget = Join-Path $HOME ".wslconfig"
+New-Item -ItemType SymbolicLink -Path $wslConfigTarget -Target $wslConfigSource -Force | Out-Null
+Write-Host "Linked: $wslConfigSource -> $wslConfigTarget" -ForegroundColor Green
+
 # WSL
 Write-Host "Installing: WSL" -ForegroundColor Cyan
 $wslList = wsl --list --quiet 2>$null

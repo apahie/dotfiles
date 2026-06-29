@@ -1,0 +1,3 @@
+[experimental]
+# vhdx を疎ファイル化し、WSL内で削除した分のディスク領域を自動回収する
+sparseVhd=true
