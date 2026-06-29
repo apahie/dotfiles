@@ -95,11 +95,15 @@ if (-not (Test-Path $zenhanPath)) {
     Write-Host "Already exists: $zenhanPath" -ForegroundColor Yellow
 }
 
-# %USERPROFILE%\bin を PATH に追加（WSLからzenhan.exe等を呼び出すため）
+# PATH に追加（claude.exe は .local\bin、zenhan.exe 等は %USERPROFILE%\bin）
+$claudeBinDir = Join-Path $env:USERPROFILE ".local\bin"
 $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-if ($userPath -notlike "*$binDir*") {
-    [Environment]::SetEnvironmentVariable("PATH", "$userPath;$binDir", "User")
-    Write-Host "Added to PATH: $binDir" -ForegroundColor Green
+foreach ($dir in @($claudeBinDir, $binDir)) {
+    if ($userPath -notlike "*$dir*") {
+        $userPath = "$userPath;$dir"
+        [Environment]::SetEnvironmentVariable("PATH", $userPath, "User")
+        Write-Host "Added to PATH: $dir" -ForegroundColor Green
+    }
 }
 
 # Symlink PowerShell profile
