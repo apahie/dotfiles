@@ -8,6 +8,7 @@ echo "apt パッケージをインストール中..."
 sudo apt install -y \
   tig \
   tree \
+  dnsutils \
   build-essential \
   fonts-noto-cjk # Playwright の headless Chromium で日本語表示に必要
 
