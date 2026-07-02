@@ -3,6 +3,8 @@
 # 使い方:
 #   claude-resume          # 一覧から選択 → 該当 cwd へ cd して --resume
 #   claude-resume <args>   # 追加引数はそのまま claude に渡る (例: --model opus)
+#   Tab で複数選択すると、各セッションを新規 tmux ウィンドウで一括再開する
+#   (PC 再起動後に前日のセッション群をまとめて開き直す用途)
 #
 # 仕組み:
 #   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
@@ -70,10 +72,25 @@ function claude-resume --description '最近の Claude Code セッションを f
 
     set -l picked (
         printf '%s\n' $rows \
-        | fzf --reverse --height 50% --prompt 'resume> ' \
+        | fzf --reverse --height 50% --prompt 'resume> ' --multi \
               --delimiter \t --with-nth 1,2,3
     )
     test -n "$picked"; or return 0
+
+    # 複数選択時は各セッションをバックグラウンドの新規ウィンドウで再開する
+    if test (count $picked) -gt 1
+        if not set -q TMUX
+            echo "複数選択での一括再開は tmux 内でのみ使えます" >&2
+            return 1
+        end
+        for line in $picked
+            set -l fields (string split \t -- $line)
+            set -l win (tmux new-window -d -P -c $fields[2])
+            tmux send-keys -t $win "claude --resume $fields[4] $argv" Enter
+            echo "→ $fields[2]  (session: "(string sub -l 8 -- $fields[4])") を $win で再開"
+        end
+        return 0
+    end
 
     set -l fields (string split \t -- $picked)
     set -l cwd $fields[2]
