@@ -2,9 +2,9 @@
 #
 # 使い方:
 #   claude-resume          # 一覧から選択 → 該当 cwd へ cd して --resume
+#   claude-resume -m       # Tab で複数選択 → 各セッションを新規 tmux ウィンドウで一括再開
+#                            (PC 再起動後に前日のセッション群をまとめて開き直す用途)
 #   claude-resume <args>   # 追加引数はそのまま claude に渡る (例: --model opus)
-#   Tab で複数選択すると、各セッションを新規 tmux ウィンドウで一括再開する
-#   (PC 再起動後に前日のセッション群をまとめて開き直す用途)
 #
 # 仕組み:
 #   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
@@ -16,6 +16,15 @@
 #   mtime = JSONL 最終 record の timestamp ＝ 最後に触った時刻。
 
 function claude-resume --description '最近の Claude Code セッションを fzf で選んで再開'
+    # -m 以外のオプションは claude への渡し引数として argv に残す
+    argparse --ignore-unknown m/multi -- $argv
+    or return
+
+    if set -q _flag_multi; and not set -q TMUX
+        echo "-m (一括再開) は tmux 内でのみ使えます" >&2
+        return 1
+    end
+
     set -l projects "$HOME/.claude/projects"
     if not test -d "$projects"
         echo "Claude Code のセッションがまだありません" >&2
@@ -70,19 +79,16 @@ function claude-resume --description '最近の Claude Code セッションを f
         return 1
     end
 
-    set -l picked (
-        printf '%s\n' $rows \
-        | fzf --reverse --height 50% --prompt 'resume> ' --multi \
-              --delimiter \t --with-nth 1,2,3
-    )
+    set -l fzf_opts --reverse --height 50% --prompt 'resume> ' --delimiter \t --with-nth 1,2,3
+    if set -q _flag_multi
+        # --prompt は後勝ちで上書きされる
+        set -a fzf_opts --multi --prompt 'resume (Tab で複数選択)> '
+    end
+    set -l picked (printf '%s\n' $rows | fzf $fzf_opts)
     test -n "$picked"; or return 0
 
-    # 複数選択時は各セッションをバックグラウンドの新規ウィンドウで再開する
-    if test (count $picked) -gt 1
-        if not set -q TMUX
-            echo "複数選択での一括再開は tmux 内でのみ使えます" >&2
-            return 1
-        end
+    # -m 指定時は選んだ各セッションをバックグラウンドの新規ウィンドウで再開する
+    if set -q _flag_multi
         for line in $picked
             set -l fields (string split \t -- $line)
             set -l win (tmux new-window -d -P -c $fields[2])
