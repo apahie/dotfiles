@@ -91,6 +91,8 @@ function claude-resume --description '最近の Claude Code セッションを f
     # -m 指定時は 2 件目以降をバックグラウンドの新規ウィンドウで再開し、
     # 最初の 1 件は下の単一選択処理に流して現在のウィンドウで開く
     if set -q _flag_multi
+        # 一覧の下 (古い方) から開く。Tab の選択順に依存しないよう日時列の昇順に揃える
+        set picked (printf '%s\n' $picked | sort)
         for line in $picked[2..]
             set -l fields (string split \t -- $line)
             set -l win (tmux new-window -d -P -c $fields[2])
