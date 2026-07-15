@@ -50,7 +50,8 @@ fi
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M)
 VAULT_NAME="${VAULT_NAME:-my-vault}"
-VAULT_DIR="$HOME/workspace/$VAULT_NAME/daily/$(date +%Y/%m/%d)"
+VAULT_ROOT="$HOME/workspace/$VAULT_NAME"
+VAULT_DIR="$VAULT_ROOT/daily/$(date +%Y/%m/%d)"
 NOTE="$VAULT_DIR/$DATE.md"
 mkdir -p "$VAULT_DIR"
 
@@ -111,7 +112,22 @@ nohup bash -c "
     echo \"\$SUMMARY\"
   } >> \"\$4\"
   echo \"[\$(date '+%Y-%m-%d %H:%M:%S')] background: appended to \$4\" >> \"\$2\"
-" "$PROMPT" "$TRUNCATED_TRANSCRIPT" "$LOG" "$TIME" "$NOTE" </dev/null >/dev/null 2>&1 &
+
+  # vault が git リポジトリなら、追記したノートをコミットして push する。
+  # 失敗してもセッションには影響しないので、結果はログに残すだけにする。
+  if git -C \"\$5\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C \"\$5\" add \"\$4\"
+    if git -C \"\$5\" commit -q -m 'daily: Claude Code セッション要約を自動追記 [自動]'; then
+      if git -C \"\$5\" push -q >>\"\$2\" 2>&1; then
+        echo \"[\$(date '+%Y-%m-%d %H:%M:%S')] background: committed & pushed \$4\" >> \"\$2\"
+      else
+        echo \"[\$(date '+%Y-%m-%d %H:%M:%S')] background: committed but push failed \$4\" >> \"\$2\"
+      fi
+    else
+      echo \"[\$(date '+%Y-%m-%d %H:%M:%S')] background: nothing to commit \$4\" >> \"\$2\"
+    fi
+  fi
+" "$PROMPT" "$TRUNCATED_TRANSCRIPT" "$LOG" "$TIME" "$NOTE" "$VAULT_ROOT" </dev/null >/dev/null 2>&1 &
 disown
 
 log "hook returning immediately, summarizer PID=$!"
