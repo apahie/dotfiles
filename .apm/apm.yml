@@ -13,3 +13,6 @@ dependencies:
     # 日本語技術文書の文章規範スキル（gist 公開・単一 SKILL.md。マニフェスト無しのため git URL 直指定）
     - git: https://gist.github.com/k16shikano/fd287c3133457c4fd8f5601d34aa817d.git
       alias: japanese-tech-writing
+    # 文章の緩急・認知リズム規範スキル（gist 公開・単一 SKILL.md。マニフェスト無しのため git URL 直指定）
+    - git: https://gist.github.com/k16shikano/eb2929f13ed19c97188393d297be8432.git
+      alias: cognitive-rhythm-writing
