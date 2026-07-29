@@ -118,6 +118,13 @@ nohup bash -c "
   if git -C \"\$5\" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     git -C \"\$5\" add \"\$4\"
     if git -C \"\$5\" commit -q -m 'daily: Claude Code セッション要約を自動追記 [自動]'; then
+      # push 失敗が続くとローカルにコミットが溜まり分岐が育つため、push 前に
+      # リモートの先行コミットを取り込む。競合したら abort して手動解消に委ねる
+      # （push は失敗としてログに残る）。
+      if ! git -C \"\$5\" pull -q --rebase --autostash >>\"\$2\" 2>&1; then
+        git -C \"\$5\" rebase --abort >>\"\$2\" 2>&1
+        echo \"[\$(date '+%Y-%m-%d %H:%M:%S')] background: pull --rebase failed, aborted \$4\" >> \"\$2\"
+      fi
       if git -C \"\$5\" push -q >>\"\$2\" 2>&1; then
         echo \"[\$(date '+%Y-%m-%d %H:%M:%S')] background: committed & pushed \$4\" >> \"\$2\"
       else
