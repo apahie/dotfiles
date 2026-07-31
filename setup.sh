@@ -155,6 +155,9 @@ link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 # 実体のインストールは末尾の `mise run update` 内の `apm install -g` で実行される
 # 依存パッケージは .apm/apm.yml を参照
 link_file "$SCRIPT_DIR/.apm/apm.yml" "$HOME/.apm/apm.yml"
+# 自分で育てるスキルのソース（skills/）への安定参照。apm.yml のローカルパス依存が
+# リポジトリの配置場所（単体 / submodule）に依存しないよう ~/.apm 配下に symlink を張る
+link_file "$SCRIPT_DIR/skills" "$HOME/.apm/skills-private"
 
 # my-vault
 if [ ! -d "$HOME/workspace/my-vault" ]; then

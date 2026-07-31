@@ -1,16 +1,9 @@
 .claude/
 .claude-linux/worktrees/
 
-# APM (Agent Package Manager) でインストールされる外部スキル
+# APM が ~/.claude/skills（実体は .claude-linux/skills）へ配置するスキル群。
+# ソースは skills/（当リポジトリで追跡）と各依存リポジトリにあり、配置物は追跡しない。
 .claude-linux/skills/*/
-# 自分で育てるスキルは当リポジトリで追跡し、APM 管理外とする。
-# 検証を終えたものは platform-tools/skills へ反映する。
-!.claude-linux/skills/report/
-!.claude-linux/skills/issue-readiness/
-!.claude-linux/skills/japanese-tech-writing/
-!.claude-linux/skills/cognitive-rhythm-writing/
-!.claude-linux/skills/create-issue/
-!.claude-linux/skills/polish-issue/
 
 
 # APM dependencies
