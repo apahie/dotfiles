@@ -15,7 +15,7 @@ Issue 駆動フローの入口。後工程（polish-issue での磨き上げ、�
 - タイトルは目的で付ける。手段・方針を含めない
   - 良い例: 「手動編集された不正な DataLoader タスク ini を検知できるようにする」
   - 悪い例: 「ini 検証 PowerShell スクリプトを作る」
-- 起票先の指定がなければ、環境変数 `ISSUE_REPO` が指すリポジトリにする。`ISSUE_REPO` が未設定なら依頼者に確認する
+- 起票先は依頼の指定に従う。指定がなければ依頼者に確認する
 - Issue 本文の日本語は、japanese-tech-writing スキルを読み込み、その規範に従って書く
 
 ## 必須4項目
@@ -46,7 +46,7 @@ Issue 駆動フローの入口。後工程（polish-issue での磨き上げ、�
 3. 本文を組み立てて提示し、依頼者の確認を得てから起票する:
 
    ```bash
-   gh issue create --repo "$ISSUE_REPO" --title "<目的で書いたタイトル>" --body-file <草案ファイル>
+   gh issue create --repo <起票先リポジトリ> --title "<目的で書いたタイトル>" --body-file <草案ファイル>
    ```
 
 4. polish-issue に回す場合は `polish` ラベルを付ける。ラベルがリポジトリに無ければ作成から提案する

@@ -45,7 +45,6 @@ dotfiles管理リポジトリ。`setup.sh` で環境構築を一括実行する�
 - 職場固有の値（Oracle, OCI, work-vault 等）は持たない。
 - 可変な部分は **環境変数で上書き可能** にする（overlay 側からの拡張ポイント）。
   - 例: `auto-report.sh` の `VAULT_NAME=${VAULT_NAME:-my-vault}`
-  - 例: `create-issue` スキルの起票先 `ISSUE_REPO`。未設定ならスキルが依頼者に確認する
 
 ### overlay 拡張ポイント（変更時は work overlay 側に影響することを意識する）
 
