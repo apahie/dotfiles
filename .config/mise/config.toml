@@ -21,6 +21,7 @@ gh = "latest"
 "npm:@devcontainers/cli" = "latest"
 "pipx:apm-cli" = "latest"
 "github:anomalyco/opencode" = "latest"
+oci = "latest"
 
 [tasks.update]
 description = "ツールのアップデート"
