@@ -22,6 +22,7 @@ gh = "latest"
 "pipx:apm-cli" = "latest"
 "github:anomalyco/opencode" = "latest"
 oci = "latest"
+bats = "latest"
 
 [tasks.update]
 description = "ツールのアップデート"
