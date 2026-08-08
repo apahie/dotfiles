@@ -2,6 +2,10 @@ name: apahie-global-skills
 version: 1.0.0
 description: apahie's global Claude Code skills (managed by dotfiles)
 
+# APM の標準構成に合わせ、manifest はリポジトリ root に置く。
+# これによりこのリポジトリ自体を APM のローカルパッケージとして参照でき、
+# 参照側は下記 dependencies を推移的に解決できる。
+
 dependencies:
   apm:
     # Playwright CLI スキル（Web 操作自動化）
