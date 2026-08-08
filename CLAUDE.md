@@ -48,7 +48,7 @@ dotfiles管理リポジトリ。`setup.sh` で環境構築を一括実行する�
 
 ### overlay 拡張ポイント（変更時は work overlay 側に影響することを意識する）
 
-- `~/.apm/apm.yml` は overlay 側が yq でマージし実体ファイル化することがある。
+- `~/.apm/apm.yml` は setup.sh がこのリポジトリの `.apm/apm.yml` へ張る symlink だが、overlay 側が自分の manifest へ張り替えることがある。その場合このリポジトリの manifest は install されないため、overlay 側は必要な依存を自分の manifest に持つ。
 - fish の `conf.d/` と `fish_function_path` は overlay 側から追加される。
 - Claude Code の `settings.json`（base）は overlay 側が overlay 断片とマージし実体 `~/.claude/settings.json` を生成する（ユーザーレベルの `settings.local.json` は Claude Code に読み込まれないため）。
 - `~/.claude/agents/`, `~/.claude/skills/` は overlay 側が同名衝突しない範囲で追加する。
