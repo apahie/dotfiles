@@ -9,8 +9,15 @@ sudo apt install -y \
   tig \
   tree \
   dnsutils \
-  build-essential \
-  fonts-noto-cjk # Playwright の headless Chromium で日本語表示に必要
+  build-essential
+
+# Playwright（playwright-cli スキル）の依存パッケージ
+# fonts-noto-cjk: headless Chromium での日本語表示
+# libasound2t64: Chromium 起動に必要な ALSA ライブラリ
+echo "Playwright の依存パッケージをインストール中..."
+sudo apt install -y \
+  fonts-noto-cjk \
+  libasound2t64
 
 # Claude Code pptx スキル（document-skills:pptx）の依存パッケージ
 # libreoffice-impress: PPTX→PDF 変換（soffice）
