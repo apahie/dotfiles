@@ -168,8 +168,11 @@ else
 fi
 
 # mise trust & install
+# 古い mise は GitHub Artifact Attestations の検証に必要な TSA 証明書を持たず、
+# github backend のツールが入らない。末尾の `mise run update` を待たず先に本体を更新する。
 echo ""
 echo "mise trust & install を実行中..."
+mise self-update -y
 mise trust "$SCRIPT_DIR/.config/mise/config.toml"
 mise install
 
