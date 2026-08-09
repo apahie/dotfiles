@@ -24,7 +24,7 @@ gh = "latest"
 oci = "latest"
 bats = "latest"
 
-[tasks.update]
+[tasks.upgrade-all]
 description = "ツールのアップデート"
 run = """
 echo "==> apt update & upgrade"

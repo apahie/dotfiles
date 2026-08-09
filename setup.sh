@@ -152,7 +152,7 @@ link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 
 # APM (Agent Package Manager) - グローバルスキル定義
-# 実体のインストールは末尾の `mise run update` 内の `apm install -g` で実行される
+# 実体のインストールは末尾の `mise run upgrade-all` 内の `apm install -g` で実行される
 # 依存パッケージは .apm/apm.yml を参照
 link_file "$SCRIPT_DIR/.apm/apm.yml" "$HOME/.apm/apm.yml"
 # 自分で育てるスキルのソース（skills/）への安定参照。apm.yml のローカルパス依存が
@@ -169,7 +169,7 @@ fi
 
 # mise trust & install
 # 古い mise は GitHub Artifact Attestations の検証に必要な TSA 証明書を持たず、
-# github backend のツールが入らない。末尾の `mise run update` を待たず先に本体を更新する。
+# github backend のツールが入らない。末尾の `mise run upgrade-all` を待たず先に本体を更新する。
 echo ""
 echo "mise trust & install を実行中..."
 mise self-update -y
@@ -179,7 +179,7 @@ mise install
 # アップデート（スキルのインストールを含む）
 echo ""
 echo "アップデートを実行中..."
-mise run update
+mise run upgrade-all
 
 echo ""
 echo "セットアップ完了"
