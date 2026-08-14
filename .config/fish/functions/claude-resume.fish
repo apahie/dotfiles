@@ -12,10 +12,12 @@
 #   preview に cwd・ブランチと、最初 / 直近のプロンプトを出す。
 #   プロジェクト名は worktree を親ディレクトリに畳んでから .git を上へ探して決め、
 #   git 管理外のディレクトリでは cwd の名前をそのまま使う。
+#   ブランチは cwd から git に直接聞く。transcript の gitBranch は worktree の中でも
+#   共有チェックアウト側のブランチが記録されるため使わない。
 #
 # 仕組み:
 #   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
-#   cwd / gitBranch / sessionId と最初のプロンプトを抽出する。
+#   cwd / sessionId と最初のプロンプトを抽出する。
 #   削除済み worktree (cwd が消えたもの) は自動で除外する。
 #   session-report などプラグインが prompt を queue 投入したセッション
 #   ("type":"queue-operation" で始まるもの) も除外する。
@@ -88,10 +90,6 @@ function claude-resume --description '最近の Claude Code セッションを f
         test -n "$cwd"; or continue
         test -d "$cwd"; or continue   # 削除済み worktree は除外
 
-        set -l branch (grep -m1 -o '"gitBranch":"[^"]*"' $file \
-            | string replace -r '"gitBranch":"(.*)"' '$1')
-        test -z "$branch"; and set branch '-'
-
         # worktree は親プロジェクトに畳み、git 管理下ならリポジトリ名を採る。
         # 見つからなければ cwd のディレクトリ名のまま。
         set -l project (path basename $cwd)
@@ -106,8 +104,8 @@ function claude-resume --description '最近の Claude Code セッションを f
 
         set -l prompt (head -n 60 $file | jq -rc "$claude_resume_jq" 2>/dev/null | head -1)
 
-        set -a rows (printf '%s\t%-24.24s\t%s\t%s\t%s\t%s' \
-            $ago $project "$prompt" $cwd $branch $file)
+        set -a rows (printf '%s\t%-24.24s\t%s\t%s\t%s' \
+            $ago $project "$prompt" $cwd $file)
 
         # 表示するぶんがそろったら走査を打ち切る
         if test (count $rows) -ge 50
@@ -120,20 +118,29 @@ function claude-resume --description '最近の Claude Code セッションを f
         return 1
     end
 
-    # {3} 最初のプロンプト / {4} cwd / {5} ブランチ / {6} transcript のパス。
+    # {3} 最初のプロンプト / {4} cwd / {5} transcript のパス。
     # --with-nth で列を隠しても {n} は元の行を指すので、隠し列を preview で使える。
+    # ブランチは transcript の gitBranch を使わない。worktree の中で動いていても
+    # 共有チェックアウト側のブランチが記録されるため、cwd から git に直接聞く。
     # 直近のプロンプトは tac で末尾から遡る。head -1 でパイプが閉じるため、
     # 大きい transcript でも見つかった時点で読むのをやめる。
     set -l preview '
         printf "cwd    : %s\n" {4}
-        printf "branch : %s\n" {5}
+        branch=$(git -C {4} branch --show-current 2>/dev/null)
+        if [ -z "$branch" ]; then
+            head=$(git -C {4} rev-parse --short HEAD 2>/dev/null)
+            if [ -n "$head" ]; then branch="(detached $head)"; else branch="-"; fi
+        fi
+        printf "branch : %s\n" "$branch"
         printf "\n--- 最初 ---\n%s\n" {3}
         printf "\n--- 直近 ---\n"
-        tac {6} | jq -rc "$claude_resume_jq" 2>/dev/null | head -1
+        tac {5} | jq -rc "$claude_resume_jq" 2>/dev/null | head -1
     '
 
+    # preview は既定で $SHELL に渡される。fish に渡すと sh 構文が通らないうえ
+    # config.fish の読み込みで毎回 2 秒以上待たされるため、sh を明示する。
     set -l fzf_opts --reverse --height 70% --prompt 'resume> ' \
-        --delimiter \t --with-nth 1,2,3 \
+        --delimiter \t --with-nth 1,2,3 --with-shell 'sh -c' \
         --preview-window 'right,50%,wrap' --preview $preview
     if set -q _flag_multi
         # --prompt は後勝ちで上書きされる
@@ -149,7 +156,7 @@ function claude-resume --description '最近の Claude Code セッションを f
         set picked (printf '%s\n' $picked | sort)
         for line in $picked[2..]
             set -l fields (string split \t -- $line)
-            set -l sid (path basename $fields[6] | string replace '.jsonl' '')
+            set -l sid (path basename $fields[5] | string replace '.jsonl' '')
             set -l win (tmux new-window -d -P -c $fields[4])
             tmux send-keys -t $win "claude --resume $sid $argv" Enter
             echo "→ $fields[4]  (session: "(string sub -l 8 -- $sid)") を $win で再開"
@@ -159,7 +166,7 @@ function claude-resume --description '最近の Claude Code セッションを f
 
     set -l fields (string split \t -- $picked)
     set -l cwd $fields[4]
-    set -l sid (path basename $fields[6] | string replace '.jsonl' '')
+    set -l sid (path basename $fields[5] | string replace '.jsonl' '')
 
     echo "→ $cwd  (session: "(string sub -l 8 -- $sid)")"
     cd $cwd; or return 1
