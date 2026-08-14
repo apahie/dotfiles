@@ -7,13 +7,19 @@
 #                            (PC 再起動後に前日のセッション群をまとめて開き直す用途)
 #   claude-resume <args>   # 追加引数はそのまま claude に渡る (例: --model opus)
 #
+# 表示:
+#   一覧は 日時 / プロジェクト名 / 最初のプロンプト の 3 列。
+#   preview に cwd・ブランチと、最初 / 直近のプロンプトを出す。
+#   プロジェクト名は worktree を親ディレクトリに畳んでから .git を上へ探して決め、
+#   git 管理外のディレクトリでは cwd の名前をそのまま使う。
+#
 # 仕組み:
 #   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
-#   cwd / gitBranch / sessionId を抽出。レポート / 消滅 cwd を除外した後の
-#   最新 50 件を fzf に渡し、選んだセッションへ cd → claude --resume <sid>。
+#   cwd / gitBranch / sessionId と最初のプロンプトを抽出する。
 #   削除済み worktree (cwd が消えたもの) は自動で除外する。
 #   session-report などプラグインが prompt を queue 投入したセッション
 #   ("type":"queue-operation" で始まるもの) も除外する。
+#   表示は 50 件までなので、そろった時点で走査を打ち切る。
 #   mtime = JSONL 最終 record の timestamp ＝ 最後に触った時刻。
 
 function claude-resume --description '最近の Claude Code セッションを fzf で選んで再開'
@@ -32,9 +38,30 @@ function claude-resume --description '最近の Claude Code セッションを f
         return 1
     end
 
+    # transcript から「自分が入力したプロンプト」だけを取り出す jq プログラム。
+    # ツール結果・システム挿入・/clear などのコマンド行は落とす。
+    # 巨大なメッセージに gsub を当てると遅いので、先に .[0:2000] で切る。
+    # preview は sh から実行されるため、環境変数として渡して一覧と共用する。
+    set -lx claude_resume_jq '
+        select(.type == "user" and (.isMeta != true) and (.isSidechain != true))
+        | ((.message.content // "")
+           | if type == "string" then .
+             else (map(select(.type == "text") | .text // "") | join(" ")) end)
+        | select(contains("<system-reminder>") or contains("<local-command-stdout>")
+                 or contains("idle_notification") or startswith("[Request interrupted")
+                 or startswith("Caveat:") | not)
+        | .[0:2000]
+        | select(test("<command-name>/(clear|resume|compact|exit|cost|status|model)") | not)
+        | gsub("<command-message>[^<]*</command-message>"; "")
+        | gsub("<[^>]*>"; " ")
+        | gsub("[[:space:]]+"; " ")
+        | ltrimstr(" ") | rtrimstr(" ")
+        | select(length > 0)
+        | .[0:400]
+    '
+
     # mtime\t日時\tパス を新しい順に取得する。
-    # レポート / 消滅 cwd のフィルタで多くが落ちるため多めに拾い、
-    # 表示件数の cap はフィルタを通した後にかける。
+    # レポート / 消滅 cwd のフィルタで多くが落ちるため多めに拾う。
     set -l recent (
         find "$projects" -maxdepth 2 -name '*.jsonl' -type f \
             -printf '%T@\t%TY-%Tm-%Td %TH:%TM\t%p\n' 2>/dev/null \
@@ -65,14 +92,27 @@ function claude-resume --description '最近の Claude Code セッションを f
             | string replace -r '"gitBranch":"(.*)"' '$1')
         test -z "$branch"; and set branch '-'
 
-        set -l sid (path basename $file | string replace '.jsonl' '')
+        # worktree は親プロジェクトに畳み、git 管理下ならリポジトリ名を採る。
+        # 見つからなければ cwd のディレクトリ名のまま。
+        set -l project (path basename $cwd)
+        set -l dir (string replace -r '/\.claude/worktrees/[^/]+$' '' -- $cwd)
+        while test "$dir" != /; and test "$dir" != "$HOME"
+            if test -e "$dir/.git"
+                set project (path basename $dir)
+                break
+            end
+            set dir (path dirname $dir)
+        end
 
-        set -a rows (printf '%s\t%s\t%s\t%s' $ago $cwd $branch $sid)
-    end
+        set -l prompt (head -n 60 $file | jq -rc "$claude_resume_jq" 2>/dev/null | head -1)
 
-    # フィルタを通過した実セッションのうち、最新 50 件だけを表示する。
-    if test (count $rows) -gt 50
-        set rows $rows[1..50]
+        set -a rows (printf '%s\t%-24.24s\t%s\t%s\t%s\t%s' \
+            $ago $project "$prompt" $cwd $branch $file)
+
+        # 表示するぶんがそろったら走査を打ち切る
+        if test (count $rows) -ge 50
+            break
+        end
     end
 
     if test (count $rows) -eq 0
@@ -80,7 +120,21 @@ function claude-resume --description '最近の Claude Code セッションを f
         return 1
     end
 
-    set -l fzf_opts --reverse --height 50% --prompt 'resume> ' --delimiter \t --with-nth 1,2,3
+    # {3} 最初のプロンプト / {4} cwd / {5} ブランチ / {6} transcript のパス。
+    # --with-nth で列を隠しても {n} は元の行を指すので、隠し列を preview で使える。
+    # 直近のプロンプトは tac で末尾から遡る。head -1 でパイプが閉じるため、
+    # 大きい transcript でも見つかった時点で読むのをやめる。
+    set -l preview '
+        printf "cwd    : %s\n" {4}
+        printf "branch : %s\n" {5}
+        printf "\n--- 最初 ---\n%s\n" {3}
+        printf "\n--- 直近 ---\n"
+        tac {6} | jq -rc "$claude_resume_jq" 2>/dev/null | head -1
+    '
+
+    set -l fzf_opts --reverse --height 70% --prompt 'resume> ' \
+        --delimiter \t --with-nth 1,2,3 \
+        --preview-window 'right,50%,wrap' --preview $preview
     if set -q _flag_multi
         # --prompt は後勝ちで上書きされる
         set -a fzf_opts --multi --prompt 'resume (Tab で複数選択)> '
@@ -95,16 +149,17 @@ function claude-resume --description '最近の Claude Code セッションを f
         set picked (printf '%s\n' $picked | sort)
         for line in $picked[2..]
             set -l fields (string split \t -- $line)
-            set -l win (tmux new-window -d -P -c $fields[2])
-            tmux send-keys -t $win "claude --resume $fields[4] $argv" Enter
-            echo "→ $fields[2]  (session: "(string sub -l 8 -- $fields[4])") を $win で再開"
+            set -l sid (path basename $fields[6] | string replace '.jsonl' '')
+            set -l win (tmux new-window -d -P -c $fields[4])
+            tmux send-keys -t $win "claude --resume $sid $argv" Enter
+            echo "→ $fields[4]  (session: "(string sub -l 8 -- $sid)") を $win で再開"
         end
         set picked $picked[1]
     end
 
     set -l fields (string split \t -- $picked)
-    set -l cwd $fields[2]
-    set -l sid $fields[4]
+    set -l cwd $fields[4]
+    set -l sid (path basename $fields[6] | string replace '.jsonl' '')
 
     echo "→ $cwd  (session: "(string sub -l 8 -- $sid)")"
     cd $cwd; or return 1
