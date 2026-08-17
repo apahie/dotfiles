@@ -19,6 +19,9 @@ dependencies:
     - ~/.apm/skills-private/cognitive-rhythm-writing
     - ~/.apm/skills-private/create-issue
     - ~/.apm/skills-private/polish-issue
+    # PR レビュー統合フロー。当リポジトリが正で、kuhonji/platform-tools/skills 側は
+    # ローカルで検証したものを後から反映する。
+    - ~/.apm/skills-private/pr-review-flow
 
 # japanese-tech-writing と cognitive-rhythm-writing の由来は k16shikano 氏の gist。
 # 上流の差分を確認するときは次を参照する。
