@@ -158,6 +158,11 @@ done
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
 link_file "$SCRIPT_DIR/.claude-linux/hooks" "$HOME/.claude/hooks"
 
+# APM は agent-skills 規約の ~/.agents/skills にも同じスキルを配置する。Claude Code は
+# そこを読まないが opencode などが読むため、実体を二重に持たず symlink で 1 箇所に寄せる。
+# apm install より前に張る必要がある（無ければ APM が実ディレクトリを作ってしまう）。
+link_file "$HOME/.claude/skills" "$HOME/.agents/skills"
+
 # APM (Agent Package Manager) - グローバルスキル定義
 # 実体のインストールは末尾の `mise run upgrade-all` 内の `apm install -g` で実行される
 # 依存パッケージは .apm/apm.yml を参照
