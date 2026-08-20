@@ -22,10 +22,12 @@
 #   session-report などプラグインが prompt を queue 投入したセッション
 #   ("type":"queue-operation" で始まるもの) は除外する。
 #   削除済み worktree のセッションも一覧に残す。--resume は cwd に依存せず
-#   セッションを解決するため、選んだ時点で worktree を作り直せば再開できる。
-#   再作成は元のパスと worktree-<名> ブランチを再利用し、ブランチが残っていなければ
-#   親リポの HEAD から新しく切る (この場合、当時の作業内容までは戻らない)。
-#   worktree の削除でブランチも消えるため、実際はほとんどが HEAD 基点になる。
+#   セッションを解決するため、親リポで claude -w を付けて再開すればよい。
+#   worktree の作成は claude -w に任せる。手で git worktree add すると Claude Code
+#   管理外 (lock なし) の worktree になるため、元の名前を -w に渡すだけにする。
+#   -w は worktree-<名> を親リポの HEAD から作るので、当時の作業内容までは戻らない。
+#   worktree の削除でブランチも消えるため実害は出ないが、同名ブランチが残っていた
+#   場合は -w がそれを HEAD へ reset してしまうので、名前をずらして避ける。
 #   表示は 50 件までなので、そろった時点で走査を打ち切る。
 #   mtime = JSONL 最終 record の timestamp ＝ 最後に触った時刻。
 
@@ -85,8 +87,10 @@ function claude-resume --description '最近の Claude Code セッションを f
         set -l ago $parts[2]
         set -l file $parts[3]
 
-        # session-report 等プラグインが prompt を queue 投入したセッションは除外
-        if head -3 $file | grep -q '"type":"queue-operation"'
+        # session-report 等プラグインが prompt を queue 投入したセッションは除外。
+        # 判定は 1 行目だけにする。claude -w で始めたセッションは worktree-state の
+        # 次に enqueue が来るため、head -3 で見ると worktree セッションまで落ちる。
+        if head -1 $file | grep -q '"type":"queue-operation"'
             continue
         end
 
@@ -150,7 +154,7 @@ function claude-resume --description '最近の Claude Code セッションを f
             fi
             printf "branch : %s\n" "$branch"
         else
-            printf "branch : worktree 削除済み → worktree-%s を作り直して再開\n" "$(basename {4})"
+            printf "branch : worktree 削除済み → claude -w %s で作り直して再開\n" "$(basename {4})"
         fi
         printf "\n--- 最初 ---\n%s\n" {3}
         printf "\n--- 直近 ---\n"
@@ -169,44 +173,48 @@ function claude-resume --description '最近の Claude Code セッションを f
     set -l picked (printf '%s\n' $rows | fzf $fzf_opts)
     test -n "$picked"; or return 0
 
-    # 削除済み worktree を選んだ行は、再開する前に置き場所を作り直す。
-    # ブランチが残っていればそこから、無ければ親リポの HEAD から切る。
+    # 選んだ行を 日時 / 起動ディレクトリ / transcript / claude への追加引数 に畳む。
+    # worktree が生きている行はそのディレクトリで、削除済みの行は親リポで claude -w
+    # を付けて再開する。worktree を作るのは claude 側で、こちらは git を触らない。
+    set -l targets
     for line in $picked
         set -l fields (string split \t -- $line)
-        test "$fields[6]" = gone; or continue
-
-        set -l wt $fields[4]
-        set -l repo (string replace -r '/\.claude/worktrees/[^/]+$' '' -- $wt)
-        set -l branch worktree-(path basename $wt)
-        if git -C $repo rev-parse --verify --quiet refs/heads/$branch >/dev/null
-            git -C $repo worktree add --quiet $wt $branch; or return 1
-            echo "worktree 再作成: $wt ($branch から復元)"
-        else
-            git -C $repo worktree add --quiet -b $branch $wt; or return 1
-            echo "worktree 再作成: $wt ($branch を HEAD から新規作成)"
+        set -l dir $fields[4]
+        set -l extra
+        if test "$fields[6]" = gone
+            set dir (string replace -r '/\.claude/worktrees/[^/]+$' '' -- $fields[4])
+            # -w は同名ブランチを HEAD へ reset するので、残っている名前は避ける
+            set -l name (path basename $fields[4])
+            while git -C $dir rev-parse --verify --quiet refs/heads/worktree-$name >/dev/null
+                set name $name-resume
+            end
+            set extra "-w $name"
         end
+        set -a targets (printf '%s\t%s\t%s\t%s' $fields[1] $dir $fields[5] "$extra")
     end
 
     # -m 指定時は 2 件目以降をバックグラウンドの新規ウィンドウで再開し、
     # 最初の 1 件は下の単一選択処理に流して現在のウィンドウで開く
     if set -q _flag_multi
         # 一覧の下 (古い方) から開く。Tab の選択順に依存しないよう日時列の昇順に揃える
-        set picked (printf '%s\n' $picked | sort)
-        for line in $picked[2..]
+        set targets (printf '%s\n' $targets | sort)
+        for line in $targets[2..]
             set -l fields (string split \t -- $line)
-            set -l sid (path basename $fields[5] | string replace '.jsonl' '')
-            set -l win (tmux new-window -d -P -c $fields[4])
-            tmux send-keys -t $win "claude --resume $sid $argv" Enter
-            echo "→ $fields[4]  (session: "(string sub -l 8 -- $sid)") を $win で再開"
+            set -l sid (path basename $fields[3] | string replace '.jsonl' '')
+            set -l extra (string split -n ' ' -- $fields[4])
+            set -l win (tmux new-window -d -P -c $fields[2])
+            tmux send-keys -t $win "claude --resume $sid $extra $argv" Enter
+            echo "→ $fields[2] $extra (session: "(string sub -l 8 -- $sid)") を $win で再開"
         end
-        set picked $picked[1]
+        set targets $targets[1]
     end
 
-    set -l fields (string split \t -- $picked)
-    set -l cwd $fields[4]
-    set -l sid (path basename $fields[5] | string replace '.jsonl' '')
+    set -l fields (string split \t -- $targets)
+    set -l dir $fields[2]
+    set -l sid (path basename $fields[3] | string replace '.jsonl' '')
+    set -l extra (string split -n ' ' -- $fields[4])
 
-    echo "→ $cwd  (session: "(string sub -l 8 -- $sid)")"
-    cd $cwd; or return 1
-    claude --resume $sid $argv
+    echo "→ $dir $extra (session: "(string sub -l 8 -- $sid)")"
+    cd $dir; or return 1
+    claude --resume $sid $extra $argv
 end
