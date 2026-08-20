@@ -33,12 +33,11 @@ PR レビューを (1) 最新コードの同期 → (2) 多観点レビュー �
 
 - 対象リポジトリのローカルパスを特定する。通常は `~/workspace/<リポジトリ名>`。無ければユーザーに場所を確認する。
 - PR の head を取得する: `git fetch origin pull/<N>/head`。
-- **作業ツリーを PR の head に合わせる**: `git checkout --detach <headRefOid>`。ブランチを作らないので、ローカルに同名の未追跡ファイルがあると衝突しうる `gh pr checkout <ref>` より安全である。
-  **worktree はこのスキルでは切らない。** レビュー用の隔離は呼び出し側が用意する前提とする。`review-pr` 関数は `claude --worktree` でセッション専用の worktree を開いてから呼ぶため、ここで切ると二重になる。専用の作業ツリーで動いていない、あるいは未コミットの変更が残っているときは、checkout を実行せずにその状態を伝え、`--worktree` を付けたセッションで開き直すか、`git worktree add --detach <作業用パス> <headRefOid>` で別に切るかをユーザーに決めてもらう。
+- **作業ツリーを PR の head に合わせる**: `git checkout --detach <headRefOid>`。ブランチを作らないので、ローカルに同名の未追跡ファイルがあると衝突しうる `gh pr checkout <ref>` より安全である。使い捨ての作業ツリーでない、あるいは未コミットの変更が残っているときは、checkout せずにその状態を伝え、`--worktree` を付けたセッションで開き直すか `git worktree add --detach <作業用パス> <headRefOid>` で別に切るかをユーザーに決めてもらう。
   FETCH_HEAD でなく headRefOid を直接指定するのは、`gh pr view` で取得したメタデータ（files 一覧・差分範囲）と同じコミットをレビューするためである。FETCH_HEAD は他の fetch で上書きされうる可変の参照だが、headRefOid は不変のコミット ID なので、メタデータを取った時点の head に決定論的にピン留めできる。checkout が失敗するのは、その OID のコミットがローカルに無いとき、つまり `gh pr view` と fetch の間に PR が force-push されたときである。再 fetch しても旧 OID は取れないので、`gh pr view` から headRefOid を取り直して fetch → checkout をやり直す。これが保証するのは「最新の head」ではなく、files 一覧や差分範囲と同一の SHA を一貫してレビューすることである。
 - **submodule を使うリポジトリ**（environment-config や cas-tf-modules を参照する構成など）では、作業ツリーで `git submodule update --init --recursive` を実行して submodule も最新の参照に合わせる。これを怠ると、参照先モジュールの変更を含む PR を正しく読めない。
 - レビュー対象の差分範囲を確定する: `git fetch origin <baseRefName>` の後、`git diff origin/<baseRefName>...HEAD --stat` の変更ファイル一覧が `gh pr view` の files と一致することを確認する。head を checkout した直後は作業ツリーに差分が無いため、`git diff` 単体では変更を特定できない。
-- 作業ツリーの後片付けは呼び出し側に任せる。モード c で修正した場合は、消える前に push 済みであることを確認する。detached HEAD のコミットは、worktree を消すと参照が失われる。
+- モード c で修正した場合は、作業ツリーが消える前に push 済みであることを確認する。detached HEAD のコミットは、worktree を消すと参照が失われる。
 
 ## 3. 意図の復元と照合
 
