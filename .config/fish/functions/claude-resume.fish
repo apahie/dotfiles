@@ -14,13 +14,18 @@
 #   git 管理外のディレクトリでは cwd の名前をそのまま使う。
 #   ブランチは cwd から git に直接聞く。transcript の gitBranch は worktree の中でも
 #   共有チェックアウト側のブランチが記録されるため使わない。
+#   プロジェクト名末尾の * は worktree が削除済みの (再作成して再開する) セッション。
 #
 # 仕組み:
 #   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
 #   cwd / sessionId と最初のプロンプトを抽出する。
-#   削除済み worktree (cwd が消えたもの) は自動で除外する。
 #   session-report などプラグインが prompt を queue 投入したセッション
-#   ("type":"queue-operation" で始まるもの) も除外する。
+#   ("type":"queue-operation" で始まるもの) は除外する。
+#   削除済み worktree のセッションも一覧に残す。--resume は cwd に依存せず
+#   セッションを解決するため、選んだ時点で worktree を作り直せば再開できる。
+#   再作成は元のパスと worktree-<名> ブランチを再利用し、ブランチが残っていなければ
+#   親リポの HEAD から新しく切る (この場合、当時の作業内容までは戻らない)。
+#   worktree の削除でブランチも消えるため、実際はほとんどが HEAD 基点になる。
 #   表示は 50 件までなので、そろった時点で走査を打ち切る。
 #   mtime = JSONL 最終 record の timestamp ＝ 最後に触った時刻。
 
@@ -63,11 +68,11 @@ function claude-resume --description '最近の Claude Code セッションを f
     '
 
     # mtime\t日時\tパス を新しい順に取得する。
-    # レポート / 消滅 cwd のフィルタで多くが落ちるため多めに拾う。
+    # 走査は 50 行そろった時点で打ち切るので、ここで件数は絞らない。
     set -l recent (
         find "$projects" -maxdepth 2 -name '*.jsonl' -type f \
             -printf '%T@\t%TY-%Tm-%Td %TH:%TM\t%p\n' 2>/dev/null \
-        | sort -rn | head -400
+        | sort -rn
     )
     if test (count $recent) -eq 0
         echo "セッションがありません" >&2
@@ -88,24 +93,35 @@ function claude-resume --description '最近の Claude Code セッションを f
         set -l cwd (grep -m1 -o '"cwd":"[^"]*"' $file \
             | string replace -r '"cwd":"(.*)"' '$1')
         test -n "$cwd"; or continue
-        test -d "$cwd"; or continue   # 削除済み worktree は除外
 
         # worktree は親プロジェクトに畳み、git 管理下ならリポジトリ名を採る。
         # 見つからなければ cwd のディレクトリ名のまま。
         set -l project (path basename $cwd)
+        set -l repo
         set -l dir (string replace -r '/\.claude/worktrees/[^/]+$' '' -- $cwd)
         while test "$dir" != /; and test "$dir" != "$HOME"
             if test -e "$dir/.git"
                 set project (path basename $dir)
+                set repo $dir
                 break
             end
             set dir (path dirname $dir)
         end
 
+        # cwd が消えていても、それが親リポ直下の worktree なら再作成して再開できる。
+        # それ以外 (リポジトリごと消えた等) は復元手段がないので落とす。
+        set -l state live
+        if not test -d "$cwd"
+            test "$repo" = (string replace -r '/\.claude/worktrees/[^/]+$' '' -- $cwd)
+            or continue
+            set state gone
+            set project "$project*"
+        end
+
         set -l prompt (head -n 60 $file | jq -rc "$claude_resume_jq" 2>/dev/null | head -1)
 
-        set -a rows (printf '%s\t%-24.24s\t%s\t%s\t%s' \
-            $ago $project "$prompt" $cwd $file)
+        set -a rows (printf '%s\t%-24.24s\t%s\t%s\t%s\t%s' \
+            $ago "$project" "$prompt" $cwd $file $state)
 
         # 表示するぶんがそろったら走査を打ち切る
         if test (count $rows) -ge 50
@@ -114,7 +130,7 @@ function claude-resume --description '最近の Claude Code セッションを f
     end
 
     if test (count $rows) -eq 0
-        echo "復元可能なセッション (cwd 現存) がありません" >&2
+        echo "再開できるセッションがありません" >&2
         return 1
     end
 
@@ -126,12 +142,16 @@ function claude-resume --description '最近の Claude Code セッションを f
     # 大きい transcript でも見つかった時点で読むのをやめる。
     set -l preview '
         printf "cwd    : %s\n" {4}
-        branch=$(git -C {4} branch --show-current 2>/dev/null)
-        if [ -z "$branch" ]; then
-            head=$(git -C {4} rev-parse --short HEAD 2>/dev/null)
-            if [ -n "$head" ]; then branch="(detached $head)"; else branch="-"; fi
+        if [ -d {4} ]; then
+            branch=$(git -C {4} branch --show-current 2>/dev/null)
+            if [ -z "$branch" ]; then
+                head=$(git -C {4} rev-parse --short HEAD 2>/dev/null)
+                if [ -n "$head" ]; then branch="(detached $head)"; else branch="-"; fi
+            fi
+            printf "branch : %s\n" "$branch"
+        else
+            printf "branch : worktree 削除済み → worktree-%s を作り直して再開\n" "$(basename {4})"
         fi
-        printf "branch : %s\n" "$branch"
         printf "\n--- 最初 ---\n%s\n" {3}
         printf "\n--- 直近 ---\n"
         tac {5} | jq -rc "$claude_resume_jq" 2>/dev/null | head -1
@@ -148,6 +168,24 @@ function claude-resume --description '最近の Claude Code セッションを f
     end
     set -l picked (printf '%s\n' $rows | fzf $fzf_opts)
     test -n "$picked"; or return 0
+
+    # 削除済み worktree を選んだ行は、再開する前に置き場所を作り直す。
+    # ブランチが残っていればそこから、無ければ親リポの HEAD から切る。
+    for line in $picked
+        set -l fields (string split \t -- $line)
+        test "$fields[6]" = gone; or continue
+
+        set -l wt $fields[4]
+        set -l repo (string replace -r '/\.claude/worktrees/[^/]+$' '' -- $wt)
+        set -l branch worktree-(path basename $wt)
+        if git -C $repo rev-parse --verify --quiet refs/heads/$branch >/dev/null
+            git -C $repo worktree add --quiet $wt $branch; or return 1
+            echo "worktree 再作成: $wt ($branch から復元)"
+        else
+            git -C $repo worktree add --quiet -b $branch $wt; or return 1
+            echo "worktree 再作成: $wt ($branch を HEAD から新規作成)"
+        end
+    end
 
     # -m 指定時は 2 件目以降をバックグラウンドの新規ウィンドウで再開し、
     # 最初の 1 件は下の単一選択処理に流して現在のウィンドウで開く
