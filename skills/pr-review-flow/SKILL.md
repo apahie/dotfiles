@@ -33,11 +33,12 @@ PR レビューを (1) 最新コードの同期 → (2) 多観点レビュー �
 
 - 対象リポジトリのローカルパスを特定する。通常は `~/workspace/<リポジトリ名>`。無ければユーザーに場所を確認する。
 - PR の head を取得する: `git fetch origin pull/<N>/head`。
-- **レビュー用に worktree を切るのを既定とする**: `git worktree add --detach <作業用パス> <headRefOid>`。ローカルの現在ブランチや未コミット・未追跡ファイルを汚さず、PR の実コードだけを対象にできる。ローカルに同名の未追跡ファイルがあると `gh pr checkout` は衝突しうるため、worktree が安全。worktree を使えない事情があるときだけ `gh pr checkout <ref>` を使う。
-  FETCH_HEAD でなく headRefOid を直接指定するのは、`gh pr view` で取得したメタデータ（files 一覧・差分範囲）と同じコミットをレビューするためである。FETCH_HEAD は他の fetch で上書きされうる可変の参照だが、headRefOid は不変のコミット ID なので、メタデータを取った時点の head に決定論的にピン留めできる。add が失敗するのは、その OID のコミットがローカルに無いとき、つまり `gh pr view` と fetch の間に PR が force-push されたときである。再 fetch しても旧 OID は取れないので、`gh pr view` から headRefOid を取り直して fetch → add をやり直す。これが保証するのは「最新の head」ではなく、files 一覧や差分範囲と同一の SHA を一貫してレビューすることである。
-- **submodule を使うリポジトリ**（environment-config や cas-tf-modules を参照する構成など）では、worktree 内で `git submodule update --init --recursive` を実行して submodule も最新の参照に合わせる。これを怠ると、参照先モジュールの変更を含む PR を正しく読めない。
-- レビュー対象の差分範囲を確定する: `git fetch origin <baseRefName>` の後、`git diff origin/<baseRefName>...HEAD --stat` の変更ファイル一覧が `gh pr view` の files と一致することを確認する。worktree は checkout 直後で作業ツリーに差分が無いため、`git diff` 単体では変更を特定できない。
-- レビュー完了後は `git worktree remove <作業用パス>` で後片付けする。モード c で修正した場合は push 済みであることを確認してから消す。push していないコミットは worktree を消すと参照が失われる。
+- **作業ツリーを PR の head に合わせる**: `git checkout --detach <headRefOid>`。ブランチを作らないので、ローカルに同名の未追跡ファイルがあると衝突しうる `gh pr checkout <ref>` より安全である。
+  **worktree はこのスキルでは切らない。** レビュー用の隔離は呼び出し側が用意する前提とする。`review-pr` 関数は `claude --worktree` でセッション専用の worktree を開いてから呼ぶため、ここで切ると二重になる。専用の作業ツリーで動いていない、あるいは未コミットの変更が残っているときは、checkout を実行せずにその状態を伝え、`--worktree` を付けたセッションで開き直すか、`git worktree add --detach <作業用パス> <headRefOid>` で別に切るかをユーザーに決めてもらう。
+  FETCH_HEAD でなく headRefOid を直接指定するのは、`gh pr view` で取得したメタデータ（files 一覧・差分範囲）と同じコミットをレビューするためである。FETCH_HEAD は他の fetch で上書きされうる可変の参照だが、headRefOid は不変のコミット ID なので、メタデータを取った時点の head に決定論的にピン留めできる。checkout が失敗するのは、その OID のコミットがローカルに無いとき、つまり `gh pr view` と fetch の間に PR が force-push されたときである。再 fetch しても旧 OID は取れないので、`gh pr view` から headRefOid を取り直して fetch → checkout をやり直す。これが保証するのは「最新の head」ではなく、files 一覧や差分範囲と同一の SHA を一貫してレビューすることである。
+- **submodule を使うリポジトリ**（environment-config や cas-tf-modules を参照する構成など）では、作業ツリーで `git submodule update --init --recursive` を実行して submodule も最新の参照に合わせる。これを怠ると、参照先モジュールの変更を含む PR を正しく読めない。
+- レビュー対象の差分範囲を確定する: `git fetch origin <baseRefName>` の後、`git diff origin/<baseRefName>...HEAD --stat` の変更ファイル一覧が `gh pr view` の files と一致することを確認する。head を checkout した直後は作業ツリーに差分が無いため、`git diff` 単体では変更を特定できない。
+- 作業ツリーの後片付けは呼び出し側に任せる。モード c で修正した場合は、消える前に push 済みであることを確認する。detached HEAD のコミットは、worktree を消すと参照が失われる。
 
 ## 3. 意図の復元と照合
 
@@ -47,13 +48,13 @@ PR レビューを (1) 最新コードの同期 → (2) 多観点レビュー �
 
 **復元するサブエージェントに、PR 番号・URL・タイトル・説明・ブランチ名を渡さない。** 説明を先に読ませると、モデルはその説明どおりに差分を解釈するため、復元が独立した観測にならず、突き合わせても差が出ない。番号を渡さなければ `gh pr view` を実行できないので、指示だけに頼らず構造として遮断できる。
 
-コミットメッセージも作者による自己申告なので、同じ理由で渡さない。ここは経路が残りやすい。手順2で同期した worktree は PR の head にあるため、`git log` を叩けばコミットメッセージに到達できてしまう。渡すものを次のように分ける。
+コミットメッセージも作者による自己申告なので、同じ理由で渡さない。ここは経路が残りやすい。手順2で同期した作業ツリーは PR の head にあるため、`git log` を叩けばコミットメッセージに到達できてしまう。渡すものを次のように分ける。
 
 - **差分**: `git diff origin/<baseRefName>...HEAD > <差分ファイル>` でファイルに落とし、そのパスを渡す
 - **周辺コード**: base のツリーを `git archive origin/<baseRefName> | tar -x -C <展開先>` で展開して渡す。git のメタデータを持たないただのディレクトリになるので、`git log`・`git branch`・`git show` から到達する経路がまとめて閉じる
 - **ファイル名に PR 番号を入れない**。`pr-343.diff` のような名前は、それ自体が番号を漏らす
 
-worktree を渡す形では遮断しきれない。base に切っても `git branch -a` には作者のブランチ名が並び、そこには目的だけでなくレビュー往復の回数（`work/....-comments-r4` のような命名）まで表れる。`git log --all` を叩けば全ブランチのコミット件名にも届く。復元するモデルは「GitHub を検索しない」という指示には従うが、手元の git 履歴を同じ経路とは認識しない。だから指示ではなくツリーの側で閉じる。
+作業ツリーをそのまま渡す形では遮断しきれない。base に切っても `git branch -a` には作者のブランチ名が並び、そこには目的だけでなくレビュー往復の回数（`work/....-comments-r4` のような命名）まで表れる。`git log --all` を叩けば全ブランチのコミット件名にも届く。復元するモデルは「GitHub を検索しない」という指示には従うが、手元の git 履歴を同じ経路とは認識しない。だから指示ではなくツリーの側で閉じる。
 
 `git archive` の展開先は base 時点の内容なので、差分が参照する他ファイルの存在確認（リンク先の文書があるか、呼び出し元がどこか）はそのまま行える。origin から取るため、ローカルのブランチが古くても影響を受けない。
 
@@ -128,7 +129,7 @@ worktree を渡す形では遮断しきれない。base に切っても `git bra
   - `type-design-analyzer` — 型設計（型の追加・変更時）
   - `comment-analyzer` — コメント整合（コメント・ドキュメント追加時）
 
-  review-pr 起動時は、対象コードが worktree（`<作業用パス>`）にあり、レビュー範囲が `origin/<baseRefName>...HEAD` の差分であることを明示する。review-pr は既定で cwd の作業ツリー `git diff` から変更ファイルを特定する。同期済み worktree は checkout 直後で差分が無いため、この明示を欠くと「変更なし」と誤認する。
+  review-pr 起動時は、対象コードが cwd の作業ツリーにあり、レビュー範囲が `origin/<baseRefName>...HEAD` の差分であることを明示する。review-pr は既定で cwd の作業ツリー `git diff` から変更ファイルを特定する。同期直後は差分が無いため、この明示を欠くと「変更なし」と誤認する。
 - **ドキュメント差分を含む場合**（Markdown、設計書、構築手順書など）: 上記 review-pr に加えて `japanese-tech-writing` スキルの文章規範でもレビューする。review-pr を置き換えるのではなく、文章面の観点として重ねる。
 - 各指摘には根拠を `file:line` で添える。同期した最新コードの実際の行を指す。
 
@@ -160,8 +161,8 @@ worktree を渡す形では遮断しきれない。base に切っても `git bra
   削除された行への指摘は `side` を `LEFT` にする。Reviews API は diff のハンクに現れる行にしかコメントできず、ハンク外の行に付けると 422 で失敗する。ハンクに含まれない行や変更していないファイルへの指摘は、レビュー本文（`body`）にまとめる。`gh pr comment` の全体コメントは投稿した時点で公開されるので、Pending で揃えている指摘と混ぜない。
   指摘の内容は、作成前に提示して確認を取る。Pending は公開の一歩手前だが、GitHub 側には書き込まれる。
   手順3の照合結果は、そのまま投稿しない。ずれの指摘は相手が書いた説明への指摘であり、復元が誤っていたときの棄却コストをレビューイに転嫁することになる。議題にすべきものはレビュワーが判断し、自分の言葉で書く。
-- **c. コードに修正を反映する**: review-pr の指摘のうち明確な修正（バグ修正・簡素化など）を worktree に適用する。適用範囲を提示して確認を取ってから、小さくこまめにコミットする。意図レベルの判断が要る修正（仕様の解釈が分かれるもの）は勝手に入れず、指摘として残す。
-  worktree は detached HEAD のため、コミットしただけでは PR に反映されない。`git push origin HEAD:<headRefName>` で PR ブランチへ push するところまで行う。push 後は修正した観点だけ review-pr を再実行し、指摘が解消したことを確認する。fork からの PR（isCrossRepository が true）は origin へ push できないため、修正は適用せず指摘として返す。
+- **c. コードに修正を反映する**: review-pr の指摘のうち明確な修正（バグ修正・簡素化など）を作業ツリーに適用する。適用範囲を提示して確認を取ってから、小さくこまめにコミットする。意図レベルの判断が要る修正（仕様の解釈が分かれるもの）は勝手に入れず、指摘として残す。
+  作業ツリーは detached HEAD のため、コミットしただけでは PR に反映されない。`git push origin HEAD:<headRefName>` で PR ブランチへ push するところまで行う。push 後は修正した観点だけ review-pr を再実行し、指摘が解消したことを確認する。fork からの PR（isCrossRepository が true）は origin へ push できないため、修正は適用せず指摘として返す。
 
 ## 原則
 
