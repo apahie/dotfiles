@@ -2,7 +2,7 @@
 # ウィンドウをリポジトリ名のアルファベット順に並べ替える（tmux-agent-sidebar の見出し順に合わせる）。
 # 鍵は git の共通ディレクトリの親（worktree でも親リポジトリ名）、git 管理外ならディレクトリ名。
 # 同じ鍵のウィンドウは元の番号順を保つ（安定ソート）ので、サイドバーのグループ内の順とも一致する。
-# .tmux.conf の after-new-window hook から呼ばれる。
+# tmux.conf の after-new-window hook から呼ばれる。
 active=$(tmux display -p '#{window_id}')
 tmux list-windows -F '#{window_id} #{pane_current_path}' | while read -r id path; do
     common=$(git -C "$path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)

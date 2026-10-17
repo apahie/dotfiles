@@ -99,7 +99,6 @@ if command -v cmd.exe &>/dev/null; then
 fi
 
 # tmux
-link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 link_file "$SCRIPT_DIR/.config/tmux" "$HOME/.config/tmux"
 
 # tmux-agent-sidebar（Claude Code の状態を tmux のサイドバーに表示）
