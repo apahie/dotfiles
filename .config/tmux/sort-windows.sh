@@ -15,5 +15,8 @@ done
 # （不要な select-window は after-select-window hook を起こすので避ける）
 [ "$(tmux display -p '#{window_id}')" = "$active" ] || tmux select-window -t "$active"
 # 見えている現在ウィンドウのサイドバーに再描画の合図（SIGUSR1）を送り、新しい順を即時反映する。
-# プラグインが after-select-window hook で移動先に送っているのと同じ書き方。他のウィンドウはその hook に任せる
-tmux list-panes -t "$active" -F '#{@sidebar_pid}' 2>/dev/null | while read pid; do [ -n "$pid" ] && kill -USR1 "$pid" 2>/dev/null; done; true
+# プラグインが after-select-window hook で移動先に送っているのと同じ処理。他のウィンドウはその hook に任せる。
+# @sidebar_pid はサイドバー以外のペインでは空で、単語分割で消えるので PID のある行だけ回る
+for pid in $(tmux list-panes -t "$active" -F '#{@sidebar_pid}'); do
+    kill -USR1 "$pid" 2>/dev/null || true
+done
