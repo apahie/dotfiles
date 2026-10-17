@@ -100,6 +100,7 @@ fi
 
 # tmux
 link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
+link_file "$SCRIPT_DIR/.config/tmux" "$HOME/.config/tmux"
 
 # tmux-agent-sidebar（Claude Code の状態を tmux のサイドバーに表示）
 # hook が ~/.tmux/plugins/tmux-agent-sidebar/bin/ を固定パスで探すため、置き場所は変えられない
