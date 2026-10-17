@@ -33,6 +33,7 @@ dotfiles管理リポジトリ。`setup.sh` で環境構築を一括実行する�
 - プロンプト: starship（config.fish で常に最後に設定）
 - エディタ: neovim
 - AI: Claude Code
+- tmux: tmux-agent-sidebar で Claude Code の状態を表示（setup.sh が clone とバイナリ配置を行う）
 
 ## 運用方針 (single repo / overlay base)
 
