@@ -1,6 +1,6 @@
 # git の global ignore (XDG: ~/.config/git/ignore)
 
-# ide.fish が作る worktree を全 repo で ignore
+# tmux-agent-sidebar 関連: サイドバーが作る worktree（既定 .worktrees/）を全 repo で ignore
 .worktrees/
 
 # 個人メモ・個人設定 (例: memo.local.md, notes.local.md, config.local.yml)

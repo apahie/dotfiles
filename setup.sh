@@ -98,9 +98,28 @@ if command -v cmd.exe &>/dev/null; then
   fi
 fi
 
-# tmux
+# tmux（設定は ~/.tmux.conf、hook から呼ぶスクリプトは ~/.config/tmux/）
+# ~/.config/tmux/ に tmux.conf という名前のファイルを置かないこと。両方あると tmux は両方読む
 link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
-link_file "$SCRIPT_DIR/.tmux" "$HOME/.tmux"
+link_file "$SCRIPT_DIR/.config/tmux" "$HOME/.config/tmux"
+
+# tmux-agent-sidebar（Claude Code の状態を tmux のサイドバーに表示）
+# Claude Code plugin 側の hook.sh は、同梱バイナリが無いと ~/.tmux/plugins/tmux-agent-sidebar/bin/ を
+# 固定パスで探し、最後に PATH を見る。PATH には置かない前提でこの場所に固定する
+SIDEBAR_DIR="$HOME/.tmux/plugins/tmux-agent-sidebar"
+# 旧構成の ~/.tmux（当リポジトリの .tmux/ への symlink）が残っていると clone 先を作れないので外す
+if [ -L "$HOME/.tmux" ] && [ ! -e "$HOME/.tmux" ]; then
+  rm "$HOME/.tmux"
+fi
+if [ ! -d "$SIDEBAR_DIR" ]; then
+  git clone https://github.com/hiroppy/tmux-agent-sidebar.git "$SIDEBAR_DIR"
+fi
+if [ ! -x "$SIDEBAR_DIR/bin/tmux-agent-sidebar" ]; then
+  mkdir -p "$SIDEBAR_DIR/bin"
+  curl -fSL "https://github.com/hiroppy/tmux-agent-sidebar/releases/latest/download/tmux-agent-sidebar-linux-$(uname -m)" \
+    -o "$SIDEBAR_DIR/bin/tmux-agent-sidebar"
+  chmod +x "$SIDEBAR_DIR/bin/tmux-agent-sidebar"
+fi
 
 # git global ignore
 link_file "$SCRIPT_DIR/.config/git/ignore" "$HOME/.config/git/ignore"
@@ -153,6 +172,10 @@ echo "Claude Code plugins をインストール中..."
 for plugin in "${PLUGINS[@]}"; do
   claude plugin install "$plugin@claude-plugins-official" 2>/dev/null || true
 done
+# tmux-agent-sidebar の hook（Claude Code plugin。marketplace 名は hiroppy）
+# 失敗しても setup は続け、警告だけ出す（Claude Code 起動後に settings.json の enabledPlugins から再取得も試みられる）
+claude plugin install tmux-agent-sidebar --marketplace hiroppy/tmux-agent-sidebar \
+  || echo "警告: tmux-agent-sidebar の Claude Code plugin を入れられませんでした。後で claude plugin install tmux-agent-sidebar@hiroppy を実行してください" >&2
 
 # Claude Code - skills, hooks（ディレクトリ単位）
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
