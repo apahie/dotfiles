@@ -202,7 +202,7 @@ function claude-resume --description '最近の Claude Code セッションを f
             set -l fields (string split \t -- $line)
             set -l sid (path basename $fields[3] | string replace '.jsonl' '')
             set -l extra (string split -n ' ' -- $fields[4])
-            # tmux-agent-sidebar が新規ウィンドウのペイン 1 にサイドバーを割り込ませるため、
+            # tmux-agent-sidebar 関連: サイドバーが新規ウィンドウのペイン 1 に割り込むため、
             # 番号で狙うとキーがサイドバーに入る。ペイン ID で元のペインを指す
             set -l pane (tmux new-window -d -P -F '#{pane_id}' -c $fields[2])
             tmux send-keys -t $pane "claude --resume $sid $extra $argv" Enter
