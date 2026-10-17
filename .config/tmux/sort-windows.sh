@@ -14,3 +14,8 @@ done
 # swap-window は番号側にフォーカスを残すので、元のウィンドウがずれた時だけ選び直す
 # （不要な select-window は after-select-window hook を起こすので避ける）
 [ "$(tmux display -p '#{window_id}')" = "$active" ] || tmux select-window -t "$active"
+# 並べ替えで全ウィンドウの順が変わるので、全サイドバーに再描画の合図（SIGUSR1）を送って即時反映する
+# （プラグインが after-select-window で移動先のサイドバーにだけ送っているのと同じ仕組み）
+for pid in $(tmux list-panes -a -F '#{@sidebar_pid}'); do
+    kill -USR1 "$pid" 2>/dev/null || true
+done
