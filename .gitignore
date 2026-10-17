@@ -8,6 +8,3 @@
 
 # APM dependencies
 apm_modules/
-
-# tmux-agent-sidebar の clone 先（~/.tmux は当リポジトリ .tmux/ への symlink）
-.tmux/plugins/
