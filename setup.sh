@@ -98,12 +98,19 @@ if command -v cmd.exe &>/dev/null; then
   fi
 fi
 
-# tmux
+# tmux（設定は ~/.tmux.conf、hook から呼ぶスクリプトは ~/.config/tmux/）
+# ~/.config/tmux/ に tmux.conf という名前のファイルを置かないこと。両方あると tmux は両方読む
+link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 link_file "$SCRIPT_DIR/.config/tmux" "$HOME/.config/tmux"
 
 # tmux-agent-sidebar（Claude Code の状態を tmux のサイドバーに表示）
-# hook が ~/.tmux/plugins/tmux-agent-sidebar/bin/ を固定パスで探すため、置き場所は変えられない
+# Claude Code plugin 側の hook.sh は、同梱バイナリが無いと ~/.tmux/plugins/tmux-agent-sidebar/bin/ を
+# 固定パスで探し、最後に PATH を見る。PATH には置かない前提でこの場所に固定する
 SIDEBAR_DIR="$HOME/.tmux/plugins/tmux-agent-sidebar"
+# 旧構成の ~/.tmux（当リポジトリの .tmux/ への symlink）が残っていると clone 先を作れないので外す
+if [ -L "$HOME/.tmux" ] && [ ! -e "$HOME/.tmux" ]; then
+  rm "$HOME/.tmux"
+fi
 if [ ! -d "$SIDEBAR_DIR" ]; then
   git clone https://github.com/hiroppy/tmux-agent-sidebar.git "$SIDEBAR_DIR"
 fi
