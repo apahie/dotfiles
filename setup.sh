@@ -102,6 +102,19 @@ fi
 link_file "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
 link_file "$SCRIPT_DIR/.tmux" "$HOME/.tmux"
 
+# tmux-agent-sidebar（Claude Code の状態を tmux のサイドバーに表示）
+# hook が ~/.tmux/plugins/tmux-agent-sidebar/bin/ を固定パスで探すため、置き場所は変えられない
+SIDEBAR_DIR="$HOME/.tmux/plugins/tmux-agent-sidebar"
+if [ ! -d "$SIDEBAR_DIR" ]; then
+  git clone https://github.com/hiroppy/tmux-agent-sidebar.git "$SIDEBAR_DIR"
+fi
+if [ ! -x "$SIDEBAR_DIR/bin/tmux-agent-sidebar" ]; then
+  mkdir -p "$SIDEBAR_DIR/bin"
+  curl -fSL "https://github.com/hiroppy/tmux-agent-sidebar/releases/latest/download/tmux-agent-sidebar-linux-$(uname -m)" \
+    -o "$SIDEBAR_DIR/bin/tmux-agent-sidebar"
+  chmod +x "$SIDEBAR_DIR/bin/tmux-agent-sidebar"
+fi
+
 # git global ignore
 link_file "$SCRIPT_DIR/.config/git/ignore" "$HOME/.config/git/ignore"
 
@@ -153,6 +166,8 @@ echo "Claude Code plugins をインストール中..."
 for plugin in "${PLUGINS[@]}"; do
   claude plugin install "$plugin@claude-plugins-official" 2>/dev/null || true
 done
+# tmux-agent-sidebar の hook（Claude Code plugin。marketplace 名は hiroppy）
+claude plugin install tmux-agent-sidebar --marketplace hiroppy/tmux-agent-sidebar 2>/dev/null || true
 
 # Claude Code - skills, hooks（ディレクトリ単位）
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
