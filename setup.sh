@@ -173,7 +173,9 @@ for plugin in "${PLUGINS[@]}"; do
   claude plugin install "$plugin@claude-plugins-official" 2>/dev/null || true
 done
 # tmux-agent-sidebar の hook（Claude Code plugin。marketplace 名は hiroppy）
-claude plugin install tmux-agent-sidebar --marketplace hiroppy/tmux-agent-sidebar 2>/dev/null || true
+# 失敗しても setup は続け、警告だけ出す（Claude Code 起動後に settings.json の enabledPlugins から再取得も試みられる）
+claude plugin install tmux-agent-sidebar --marketplace hiroppy/tmux-agent-sidebar \
+  || echo "警告: tmux-agent-sidebar の Claude Code plugin を入れられませんでした。後で claude plugin install tmux-agent-sidebar@hiroppy を実行してください" >&2
 
 # Claude Code - skills, hooks（ディレクトリ単位）
 link_file "$SCRIPT_DIR/.claude-linux/skills" "$HOME/.claude/skills"
