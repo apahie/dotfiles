@@ -26,8 +26,6 @@ $packages = @(
     "7zip.7zip",
     "WinMerge.WinMerge",
     "astral-sh.uv",
-    "jqlang.jq",
-    "MikeFarah.yq",
     "Anthropic.Claude"
 )
 
@@ -49,22 +47,6 @@ foreach ($pkg in $packages) {
             $output | ForEach-Object { Write-Host "    $_" -ForegroundColor DarkGray }
             $failures += $pkg
         }
-    }
-}
-
-# Claude Code（公式 native installer。バックグラウンドで自動更新される）
-$claudeExe = Join-Path $env:USERPROFILE ".local\bin\claude.exe"
-if (Test-Path $claudeExe) {
-    Write-Host "Already exists: Claude Code" -ForegroundColor Yellow
-} else {
-    Write-Host "Installing: Claude Code" -ForegroundColor Cyan
-    try {
-        Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression
-        if (-not (Test-Path $claudeExe)) { throw "claude.exe が見つかりません" }
-        Write-Host "Installed: $claudeExe" -ForegroundColor Green
-    } catch {
-        Write-Host "Failed to install Claude Code: $_" -ForegroundColor Red
-        $failures += "Claude Code"
     }
 }
 
@@ -95,15 +77,11 @@ if (-not (Test-Path $zenhanPath)) {
     Write-Host "Already exists: $zenhanPath" -ForegroundColor Yellow
 }
 
-# PATH に追加（claude.exe は .local\bin、zenhan.exe 等は %USERPROFILE%\bin）
-$claudeBinDir = Join-Path $env:USERPROFILE ".local\bin"
+# %USERPROFILE%\bin を PATH に追加（WSLからzenhan.exe等を呼び出すため）
 $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-foreach ($dir in @($claudeBinDir, $binDir)) {
-    if ($userPath -notlike "*$dir*") {
-        $userPath = "$userPath;$dir"
-        [Environment]::SetEnvironmentVariable("PATH", $userPath, "User")
-        Write-Host "Added to PATH: $dir" -ForegroundColor Green
-    }
+if ($userPath -notlike "*$binDir*") {
+    [Environment]::SetEnvironmentVariable("PATH", "$userPath;$binDir", "User")
+    Write-Host "Added to PATH: $binDir" -ForegroundColor Green
 }
 
 # Symlink PowerShell profile
@@ -112,19 +90,6 @@ $profileTarget = Join-Path $HOME "Documents\PowerShell\Profile.ps1"
 New-Item -ItemType Directory -Path (Split-Path $profileTarget) -Force | Out-Null
 New-Item -ItemType SymbolicLink -Path $profileTarget -Target $profileSource -Force | Out-Null
 Write-Host "Linked: $profileSource -> $profileTarget" -ForegroundColor Green
-
-# Symlink Claude Code config
-$claudeDir = Join-Path $HOME ".claude"
-New-Item -ItemType Directory -Path $claudeDir -Force | Out-Null
-$claudeLinks = @{
-    (Join-Path $PSScriptRoot ".claude-windows\settings.json") = (Join-Path $claudeDir "settings.json")
-    (Join-Path $PSScriptRoot ".claude-windows\CLAUDE.md")     = (Join-Path $claudeDir "CLAUDE.md")
-    (Join-Path $PSScriptRoot ".claude-windows\skills")        = (Join-Path $claudeDir "skills")
-}
-foreach ($entry in $claudeLinks.GetEnumerator()) {
-    New-Item -ItemType SymbolicLink -Path $entry.Value -Target $entry.Key -Force | Out-Null
-    Write-Host "Linked: $($entry.Key) -> $($entry.Value)" -ForegroundColor Green
-}
 
 # Symlink .wslconfig
 $wslConfigSource = Join-Path $PSScriptRoot ".wslconfig"
