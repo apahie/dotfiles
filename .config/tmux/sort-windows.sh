@@ -2,7 +2,8 @@
 # tmux-agent-sidebar 関連: ウィンドウをリポジトリ名のアルファベット順に並べ替え、サイドバーの見出し順に合わせる。
 # 鍵は git の共通ディレクトリの親（worktree でも親リポジトリ名）、git 管理外ならディレクトリ名。
 # 同じ鍵のウィンドウは元の番号順を保つ（安定ソート）ので、サイドバーのグループ内の順とも一致する。
-# tmux.conf の after-new-window hook から、対象セッションの ID を引数に呼ばれる。
+# tmux.conf の after-new-window hook と Claude Code の SessionStart hook（.claude-linux/settings.json）から、
+# 対象セッションの ID を引数に呼ばれる。
 # hook 内では -t 無しの tmux コマンドが「最近使ったセッション」に解決されるため、常に -t で指定する。
 session=$1
 active=$(tmux display -p -t "$session" '#{window_id}')
