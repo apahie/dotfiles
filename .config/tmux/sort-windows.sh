@@ -9,8 +9,11 @@ active=$(tmux display -p -t "$session" '#{window_id}')
 # 番号に穴があると下の番号順の割り当てがずれるので、先に詰める
 tmux move-window -r -t "$session"
 base=$(tmux show -gv base-index)
+# 鍵のパスは、各ウィンドウでサイドバー以外の最初のペインから取る（focus-agent-pane.sh と同じ絞り込み）。
+# アクティブペインから取ると、サイドバーにフォーカスを残したウィンドウがサイドバーの cwd（ホーム）を鍵にしてしまう。
+# サイドバーだけのウィンドウは一覧から漏れて末尾に回るが、プラグインがすぐ閉じるので扱わない
 # 比較はサイドバー側（小文字化したバイト比較）と同じコードポイント順にする。鍵に空白が入っても崩れないよう区切りはタブ
-tmux list-windows -t "$session" -F '#{window_id} #{pane_current_path}' | while read -r id path; do
+tmux list-panes -s -t "$session" -f '#{!=:#{@pane_role},sidebar}' -F '#{window_id} #{pane_current_path}' | awk '!seen[$1]++' | while read -r id path; do
     common=$(git -C "$path" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)
     if [ -n "$common" ]; then key=$(basename "$(dirname "$common")"); else key=$(basename "$path"); fi
     printf '%s\t%s\n' "$(printf '%s' "$key" | tr '[:upper:]' '[:lower:]')" "$id"
