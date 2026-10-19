@@ -74,6 +74,16 @@
         ]
       }
     ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -z \"$TMUX_PANE\" ] || ~/.config/tmux/sort-windows.sh \"$(tmux display -p -t \"$TMUX_PANE\" '#{session_id}')\""
+          }
+        ]
+      }
+    ],
     "SessionEnd": [
       {
         "hooks": [
