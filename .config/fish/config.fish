@@ -1,13 +1,12 @@
 # mise は tmux より先に activate する（tmux が mise 管理版で起動するように）
 ~/.local/bin/mise activate fish | source
 
-# tmux: claudeセッションがなければ作成して入る
-# WSL初回起動時、systemdの準備完了を待ってからtmuxを起動する
+# tmux: claude セッションに入る（なければ作る。残っていれば attach する）
+# WSL 初回起動時は systemd の準備完了を待ってから tmux を起動する。
+# VM が止まって systemd の起動が終わらないことがあるので、待ちは 60 秒で打ち切る
 if not set -q TMUX; and status is-interactive
-    systemctl is-system-running --wait >/dev/null 2>&1
-    if not tmux has-session -t claude 2>/dev/null
-        exec tmux new-session -s claude
-    end
+    timeout 60 systemctl is-system-running --wait >/dev/null 2>&1
+    exec tmux new-session -A -s claude
 end
 
 fzf --fish | source
