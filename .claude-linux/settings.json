@@ -74,16 +74,6 @@
         ]
       }
     ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -z \"$TMUX_PANE\" ] || ~/.config/tmux/sort-windows.sh \"$(tmux display -p -t \"$TMUX_PANE\" '#{session_id}')\""
-          }
-        ]
-      }
-    ],
     "SessionEnd": [
       {
         "hooks": [
@@ -120,16 +110,7 @@
     "ralph-loop@claude-plugins-official": true,
     "plugin-dev@claude-plugins-official": true,
     "security-guidance@claude-plugins-official": true,
-    "session-report@claude-plugins-official": true,
-    "tmux-agent-sidebar@hiroppy": true
-  },
-  "extraKnownMarketplaces": {
-    "hiroppy": {
-      "source": {
-        "source": "github",
-        "repo": "hiroppy/tmux-agent-sidebar"
-      }
-    }
+    "session-report@claude-plugins-official": true
   },
   "alwaysThinkingEnabled": true,
   "effortLevel": "xhigh",
