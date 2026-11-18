@@ -19,8 +19,8 @@
 # 仕組み:
 #   ~/.claude/projects/*/*.jsonl を mtime 降順で拾い、各ファイルから
 #   cwd / sessionId と最初のプロンプトを抽出する。
-#   session-report などプラグインが prompt を queue 投入したセッション
-#   ("type":"queue-operation" で始まるもの) は除外する。
+#   auto-report や session-report が claude -p で動かした非対話のセッション
+#   (entrypoint が sdk-cli のもの) は除外する。
 #   削除済み worktree のセッションも一覧に残す。--resume は cwd に依存せず
 #   セッションを解決するため、親リポで claude -w を付けて再開すればよい。
 #   worktree の作成は claude -w に任せる。手で git worktree add すると Claude Code
@@ -87,10 +87,11 @@ function claude-resume --description '最近の Claude Code セッションを f
         set -l ago $parts[2]
         set -l file $parts[3]
 
-        # session-report 等プラグインが prompt を queue 投入したセッションは除外。
-        # 判定は 1 行目だけにする。claude -w で始めたセッションは worktree-state の
-        # 次に enqueue が来るため、head -3 で見ると worktree セッションまで落ちる。
-        if head -1 $file | grep -q '"type":"queue-operation"'
+        # auto-report 等が claude -p で動かした非対話のセッションは除外。
+        # 以前は 1 行目が queue-operation かで見分けていたが、v2.1.317 から
+        # 先頭に session-owner が入って外れたため、記録の並び順に頼らず entrypoint で見分ける。
+        # entrypoint は先頭の十数行以内に出るので、大きい transcript を全部読まないよう先頭だけ見る。
+        if string match -q '"entrypoint":"sdk-cli"' -- (head -n 30 $file | grep -m1 -o '"entrypoint":"[^"]*"')
             continue
         end
 
