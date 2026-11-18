@@ -1,16 +1,18 @@
 ---
 name: report
-description: セッションの作業内容を vault の日次ノートに記録する。セッション終了前や作業の区切りに使う。
+description: セッションの作業内容を、vault のセッションごとのノートに記録する。セッション終了前や作業の区切りに使う。
 disable-model-invocation: true
-allowed-tools: Read Write Edit Bash(mkdir *)
+allowed-tools: Read Write Edit Bash(mkdir *) Bash(~/.claude/hooks/auto-report.sh *)
 ---
 
-セッションの作業内容を vault の日次ノートに追記する。vault 名は `VAULT_NAME` 環境変数で指定し、未設定時は `my-vault` を使う。
+セッションの作業内容を、vault のセッションごとのノート（`daily/YYYY/MM/DD/sessions/HHMM-<題>.md`）に追記する。
+SessionEnd フックの自動要約（`~/.claude/hooks/auto-report.sh`）と同じノートに書く。
+vault 名は `VAULT_NAME` 環境変数で指定し、未設定時は `my-vault` を使う。
 
 ## なぜこの skill があるか
 
 Claude Code セッションは流れていく。コミット履歴や diff には残らない「**何を決めたか・なぜそうしたか**」が、時間が経つと思い出せなくなる。
-daily ノートに薄く残しておくことで、後から `[[ファイル名]]` でつなぎ直せる文脈の入口を作る。
+セッションごとのノートに薄く残しておくことで、後から `[[ファイル名]]` でつなぎ直せる文脈の入口を作る。
 
 形式の整合性より「**未来の自分が読み返せること**」が優先。
 
@@ -19,7 +21,10 @@ daily ノートに薄く残しておくことで、後から `[[ファイル名]
 - 今日の日付: !`date +%Y-%m-%d`
 - 現在時刻: !`date +%H:%M`
 - 作業ディレクトリ: !`pwd`
-- 対象 vault: !`echo "${VAULT_NAME:-my-vault}"`
+- セッション ID: ${CLAUDE_SESSION_ID}
+- このセッションのノート（ファイル名の付け方と探し方は auto-report.sh と共通）:
+
+!`~/.claude/hooks/auto-report.sh --note ${CLAUDE_SESSION_ID}`
 
 ## 手順
 
@@ -41,16 +46,29 @@ daily ノートに薄く残しておくことで、後から `[[ファイル名]
 
 点数の目安は 3〜7 点。内容に応じて増減して良い（短いセッションは 2 点でも、濃い 1 日は 10 点でも構わない）。
 
-### 2. 日次ノートのパス
+### 2. ノートへの追記
 
-パス規則は対象 vault の CLAUDE.md（`~/workspace/<対象 vault>/CLAUDE.md`）に従う。**ハードコードせず、CLAUDE.md を読んで現在の構造を確認すること**（過去にflat→年/月分割のような変更があったため）。
+書き先は、コンテキストの `note:` に出ているパスにする。自分でパスを組み立てない。
 
-### 3. 追記ルール
+- `(既存)` のとき
+  - 末尾に `## YYYY-MM-DD HH:MM` の節を追加する。自動要約の `[自動]` は付けない
+  - frontmatter の `reported_lines` を、コンテキストの `transcript_lines` の値に書き換える
+    - 自動要約は、この行数より後だけを要約する。書き換えないと、セッション終了時に同じ範囲がもう一度要約される
+  - すでにある自動要約の節は、内容が重なっても消したり書き換えたりしない
+- `(新規)` のとき
+  - ディレクトリが無ければ作り、次の形でノートを作ってから節を追加する
+    ```
+    ---
+    session_id: ${CLAUDE_SESSION_ID}
+    repo: <コンテキストの repo>
+    reported_lines: <コンテキストの transcript_lines>
+    ---
 
-- 既存ノートがあれば末尾に `## Claude Code セッション（HH:MM）` セクションで追加
-- ノートが無ければ vault のテンプレート（`# YYYY-MM-DD` + `## やったこと` / `## メモ・気づき` / `## リンク`）で新規作成し、その後セクション追加
-- **同じ時刻のセクションが既にある場合**（SessionEnd フックの `[自動]` 版と重複など）は上書きせず、ユーザーに「追記するか・スキップするか」を確認
+    # <コンテキストの title>
+    ```
+- `error:` のとき
+  - ノートを作らず、エラーの内容をユーザーに伝えて止まる
 
-### 4. 確認
+### 3. 確認
 
 書いた内容をユーザーに提示し、修正があれば反映する。
